@@ -1,0 +1,112 @@
+{
+  "name": "Raj Aryan",
+  "title": "Backend Developer | AI, ML & GenAI | MCA @ JNU",
+  "contact": {
+    "phone": "+91-6287753722",
+    "email_personal": "rajaryan0528@email.com",
+    "email_jnu": "rajary66_scs@jnu.ac.in",
+    "github": "https://github.com/rajaryn",
+    "linkedin": "https://www.linkedin.com/in/rajaryn",
+    "leetcode": "https://leetcode.com/u/rajaryn"
+  },
+  "summary": "MCA student and backend developer actively learning AI, ML, and GenAI. Recognized nationally for structural context engineering (First Runner-Up, Promptverse 2.0). Passionate about building robust, cost-efficient AI applications. Valued for foundational problem-solving, writing easy-to-maintain code, and clear technical communication.",
+  "education": [
+    {
+      "degree": "M.C.A (Master of Computer Applications)",
+      "institution": "Jawaharlal Nehru University (JNU)",
+      "score": "7.45 / 9 (Current)",
+      "year": "2025 — Present"
+    },
+    {
+      "degree": "B.Sc. (Hons.) Computer Science",
+      "institution": "University of Delhi (DU)",
+      "score": "8.095 CGPA",
+      "year": "2021 — 2024"
+    },
+    {
+      "degree": "Senior Secondary",
+      "institution": "CBSE Board",
+      "score": "97.0%",
+      "year": "2021"
+    }
+  ],
+  "skills": {
+    "programming": ["C++", "Python", "SQL", "Object Oriented Programming (OOP)"],
+    "web_dev": ["Flask", "HTML5", "CSS3", "JavaScript"],
+    "gen_ai": ["RAG Pipelines", "Vector Databases (TiDB, Pinecone)", "Local LLMs (Ollama)", "LLM APIs (OpenAI)", "Agentic Workflows"],
+    "tools": ["Git / GitHub", "Command Line Interface (CLI)", "Jupyter Notebook", "AWS Lightsail", "Cloudinary"],
+    "coursework": ["Data Structures", "Design & Analysis of Algorithms", "Database Management Systems (DBMS)", "Operating Systems", "Artificial Intelligence"]
+  },
+  "projects": [
+    {
+      "id": "mindspace",
+      "title": "MindSpace | AI-Powered Mental Wellness Platform",
+      "badge": "MumbaiHacks 2025",
+      "date": "Dec. 2025",
+      "bullets": [
+        "Built \"Mimi,\" an AI chatbot providing context-aware mental health support, using a custom RAG pipeline and Pinecone for vector storage.",
+        "Designed a hybrid database (MySQL & MongoDB) to guarantee ACID compliance for user data while scaling chat logs for 100+ concurrent sessions.",
+        "Constrained LLM outputs exclusively to verified psychological datasets, mitigating hallucinations and ensuring medically safe user interactions.",
+        "Secured a Top 100 finish among 500+ teams and 3,000+ participants."
+      ],
+      "tech_stack": ["Python", "RAG Pipeline", "Ollama (Local LLM)", "Pinecone", "MySQL", "MongoDB"],
+      "github": "https://github.com/rajaryan0528/mindspace"
+    },
+    {
+      "id": "intellidocs",
+      "title": "IntelliDocs | AI Document Analysis System",
+      "badge": "$0 API Cost Architecture",
+      "date": "Nov. 2025",
+      "bullets": [
+        "Launched on AWS Lightsail, acquiring 50+ signups, engineering a secure tunneling architecture to bypass free-tier hardware constraints by routing heavy LLM inference to local compute.",
+        "Architected a robust data pipeline utilizing PyMuPDF for text extraction and Cloudinary for file management, converting documents into vector embeddings stored in TiDB alongside page-level metadata for precise context engineering.",
+        "Automated document summarization using Local LLMs (Ollama), efficiently processing complex files while entirely eliminating external API costs."
+      ],
+      "tech_stack": ["Python", "TiDB", "Ollama (Local LLM)", "PyMuPDF", "Cloudinary", "AWS Lightsail"],
+      "github": "https://github.com/rajaryan0528/intellidocs"
+    }
+  ],
+  "certifications": [
+    {
+      "name": "Scientific Computing with Python",
+      "issuer": "freeCodeCamp"
+    },
+    {
+      "name": "Problem Solving (Intermediate)",
+      "issuer": "HackerRank"
+    },
+    {
+      "name": "SQL (Basic)",
+      "issuer": "HackerRank"
+    }
+  ],
+  "responsibilities": [
+    {
+      "role": "Placement Coordinator",
+      "organization": "Placement Cell, SC&SS JNU",
+      "period": "Jan. 2026 — Present",
+      "bullets": [
+        "Coordinated the MCA placement drive, acting as the primary liaison between students, faculty, and corporate recruiters.",
+        "Researched prospective companies to effectively match industry hiring requirements with student profiles.",
+        "Managed official email correspondence and drafted formal requests, ensuring clear professional communication."
+      ]
+    }
+  ],
+  "achievements": [
+    {
+      "year": "2026",
+      "title": "First Runner-Up",
+      "description": "Promptverse 2.0 organized by Fore School of Management (FSM), New Delhi. Recognized for structural context engineering."
+    },
+    {
+      "year": "2026",
+      "title": "National Finalist",
+      "description": "Mind the Product competition organized by E-Cell, IIT Roorkee."
+    },
+    {
+      "year": "2026",
+      "title": "Special Memento",
+      "description": "DevScribe Agentic IDE Pitch presented at \"AI for Viksit Bharat\", SC&SS JNU."
+    }
+  ]
+}

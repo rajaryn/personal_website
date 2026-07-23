@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal | Raj Aryan Portfolio</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .admin-container {
+      max-width: 900px;
+      margin: 4rem auto;
+      padding: 0 1.5rem;
+    }
+    .admin-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 2.25rem;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 2rem;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .admin-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .flash-messages {
+      margin-bottom: 1.5rem;
+    }
+    .alert {
+      padding: 0.85rem 1.25rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .alert-success { background-color: rgba(6, 95, 70, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .alert-danger { background-color: rgba(153, 27, 27, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .alert-info { background-color: rgba(30, 58, 138, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+    
+    .file-drop-zone {
+      border: 2px dashed var(--accent-maroon-border);
+      background-color: var(--accent-maroon-light);
+      padding: 2rem;
+      border-radius: var(--radius-md);
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: 1.25rem;
+    }
+    .file-drop-zone:hover {
+      border-color: var(--accent-maroon);
+      background-color: rgba(179, 36, 69, 0.2);
+    }
+    .json-editor {
+      width: 100%;
+      min-height: 420px;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      padding: 1rem;
+      background-color: #0d1117;
+      color: #79c0ff;
+      border: 1px solid #30363d;
+      border-radius: var(--radius-sm);
+      resize: vertical;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar Header -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-container">
+      <div class="nav-left">
+        <a href="/" class="nav-logo">
+          Raj Aryan<span class="logo-dot"></span>
+        </a>
+      </div>
+      <div class="nav-right">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M12.3 2a10 10 0 0 0 9.7 11.5 10 10 0 1 1-11.5-9.7z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-12.37l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0zm-12.37 12.37l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0z"/></svg>
+        </button>
+        {% if logged_in %}
+          <a href="{{ url_for('admin_logout') }}" class="btn btn-secondary" style="padding: 0.4rem 1rem;">Logout</a>
+        {% endif %}
+        <a href="/" class="btn btn-primary" style="padding: 0.4rem 1rem;">Back to Portfolio &rarr;</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-container">
+    
+    <!-- Flash Notifications -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% if not logged_in %}
+      <!-- ADMIN LOGIN FORM -->
+      <div class="admin-card" style="max-width: 440px; margin: 3rem auto;">
+        <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; text-align: center;">Admin Access</h2>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.75rem; text-align: center;">Enter your admin password to manage resume &amp; portfolio sections.</p>
+
+        <form action="{{ url_for('admin_login') }}" method="POST">
+          <div class="form-group">
+            <label for="password" class="form-label">Admin Password</label>
+            <input type="password" id="password" name="password" class="form-input" placeholder="Enter password" required autofocus>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Unlock Admin Portal
+          </button>
+        </form>
+      </div>
+
+    {% else %}
+
+      <!-- LOGGED IN ADMIN DASHBOARD -->
+      <div class="admin-header">
+        <div>
+          <h1 class="admin-title">Portfolio Control Panel</h1>
+          <p style="font-size: 0.925rem; color: var(--text-muted);">Upload a new PDF resume or edit your portfolio sections in real-time.</p>
+        </div>
+      </div>
+
+      <!-- SECTION 1: UPLOAD NEW PDF RESUME -->
+      <div class="admin-card">
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem;">📄 1. Upload Updated Resume PDF</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem;">Uploading a file replaces <code>static/resume.pdf</code>. All "View Resume PDF" links on the site will automatically serve this file.</p>
+
+        <form action="{{ url_for('upload_resume') }}" method="POST" enctype="multipart/form-data">
+          <div class="file-drop-zone" onclick="document.getElementById('resume_file').click();">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 0.5rem; color: var(--accent-maroon);">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <div style="font-weight: 600; color: var(--text-main);">Click to Select or Drop New PDF Resume</div>
+            <div style="font-size: 0.8rem; color: var(--text-subtle); margin-top: 0.25rem;" id="file-name-display">Only .pdf files are accepted</div>
+          </div>
+          <input type="file" id="resume_file" name="resume_file" accept=".pdf" style="display: none;" onchange="document.getElementById('file-name-display').textContent = 'Selected: ' + this.files[0].name;">
+
+          <button type="submit" class="btn btn-primary">
+            Upload &amp; Replace Resume PDF
+          </button>
+        </form>
+      </div>
+
+      <!-- SECTION 2: EDIT PORTFOLIO SECTIONS LIVE -->
+      <div class="admin-card">
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem;">⚙️ 2. Edit Portfolio Data Live (JSON)</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Modify any text, skills, project bullet points, education, or achievements below. Changes take effect on the main website immediately upon saving.
+        </p>
+
+        <form action="{{ url_for('update_portfolio') }}" method="POST">
+          <div class="form-group">
+            <textarea id="portfolio_json" name="portfolio_json" class="json-editor" required>{{ portfolio_json }}</textarea>
+          </div>
+
+          <div style="display: flex; gap: 1rem; align-items: center;">
+            <button type="submit" class="btn btn-primary">
+              Save &amp; Update Portfolio Live
+            </button>
+            <a href="/" target="_blank" class="btn btn-secondary">
+              Preview Live Site &rarr;
+            </a>
+          </div>
+        </form>
+      </div>
+
+    {% endif %}
+
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
