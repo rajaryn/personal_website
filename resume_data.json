@@ -50,7 +50,7 @@
         "Secured a Top 100 finish among 500+ teams and 3,000+ participants."
       ],
       "tech_stack": ["Python", "RAG Pipeline", "Ollama (Local LLM)", "Pinecone", "MySQL", "MongoDB"],
-      "github": "https://github.com/rajaryan0528/mindspace"
+      "github": "https://github.com/rajaryn/mindspace"
     },
     {
       "id": "intellidocs",
@@ -63,7 +63,7 @@
         "Automated document summarization using Local LLMs (Ollama), efficiently processing complex files while entirely eliminating external API costs."
       ],
       "tech_stack": ["Python", "TiDB", "Ollama (Local LLM)", "PyMuPDF", "Cloudinary", "AWS Lightsail"],
-      "github": "https://github.com/rajaryan0528/intellidocs"
+      "github": "https://github.com/rajaryn/intellidocs"
     }
   ],
   "certifications": [
