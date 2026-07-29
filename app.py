@@ -2,6 +2,7 @@ import os
 import json
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for, session, flash
+from a2wsgi import WSGIMiddleware
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "raj_aryan_portfolio_secret_2026")
@@ -188,6 +189,10 @@ def update_portfolio():
             flash(f"Error saving data: {e}", "danger")
     
     return redirect(url_for("admin_dashboard"))
+
+
+# ASGI Wrapper for Uvicorn / Render deployments
+asgi_app = WSGIMiddleware(app)
 
 
 if __name__ == "__main__":
