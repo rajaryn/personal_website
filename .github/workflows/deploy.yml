@@ -19,6 +19,8 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
 
           script: |
+            set -e
+
             cd /home/raj/personal_website
 
             git pull origin main
