@@ -9,7 +9,7 @@
     "linkedin": "https://www.linkedin.com/in/rajaryn",
     "leetcode": "https://leetcode.com/u/rajaryn"
   },
-  "summary": "MCA student and backend developer actively learning AI, ML, and GenAI. Recognized nationally for structural context engineering (First Runner-Up, Promptverse 2.0). Passionate about building robust, cost-efficient AI applications. Valued for foundational problem-solving, writing easy-to-maintain code, and clear technical communication.",
+  "summary": "MCA student and backend developer actively building AI, ML, and GenAI systems. Recognized nationally for structural context engineering (First Runner-Up, Promptverse 2.0). Passionate about building robust, cost-efficient AI applications. Valued for foundational problem-solving, clean maintainable code, and clear technical communication.",
   "education": [
     {
       "degree": "M.C.A (Master of Computer Applications)",
@@ -24,46 +24,95 @@
       "year": "2021 — 2024"
     },
     {
-      "degree": "Senior Secondary",
+      "degree": "Senior Secondary (Class XII)",
       "institution": "CBSE Board",
       "score": "97.0%",
       "year": "2021"
     }
   ],
   "skills": {
-    "programming": ["C++", "Python", "SQL", "Object Oriented Programming (OOP)"],
-    "web_dev": ["Flask", "HTML5", "CSS3", "JavaScript"],
-    "gen_ai": ["RAG Pipelines", "Vector Databases (TiDB, Pinecone)", "Local LLMs (Ollama)", "LLM APIs (OpenAI)", "Agentic Workflows"],
-    "tools": ["Git / GitHub", "Command Line Interface (CLI)", "Jupyter Notebook", "AWS Lightsail", "Cloudinary"],
-    "coursework": ["Data Structures", "Design & Analysis of Algorithms", "Database Management Systems (DBMS)", "Operating Systems", "Artificial Intelligence"]
+    "backend": ["Python", "C++", "SQL", "Flask", "REST APIs", "Object Oriented Programming (OOP)"],
+    "gen_ai": ["RAG Pipelines", "Vector Databases (TiDB, Pinecone)", "Local LLMs (Ollama)", "LLM APIs (OpenAI)", "Agentic Workflows", "Context Engineering"],
+    "tools": ["Git / GitHub", "Linux CLI", "AWS Lightsail", "Cloudinary", "Jupyter Notebook"],
+    "coursework": ["Data Structures & Algorithms", "DBMS", "Operating Systems", "Computer Networks", "Artificial Intelligence"]
   },
   "projects": [
     {
       "id": "mindspace",
-      "title": "MindSpace | AI-Powered Mental Wellness Platform",
-      "badge": "MumbaiHacks 2025",
+      "title": "MindSpace",
+      "subtitle": "AI-Powered Mental Wellness Platform",
+      "badge": "MumbaiHacks 2025 Top 100",
       "date": "Dec. 2025",
+      "summary": "Context-aware mental health support assistant ('Mimi') powered by custom RAG pipelines and a hybrid database architecture.",
       "bullets": [
-        "Built \"Mimi,\" an AI chatbot providing context-aware mental health support, using a custom RAG pipeline and Pinecone for vector storage.",
+        "Built 'Mimi', an AI chatbot providing context-aware mental health support, using a custom RAG pipeline and Pinecone for vector storage.",
         "Designed a hybrid database (MySQL & MongoDB) to guarantee ACID compliance for user data while scaling chat logs for 100+ concurrent sessions.",
         "Constrained LLM outputs exclusively to verified psychological datasets, mitigating hallucinations and ensuring medically safe user interactions.",
-        "Secured a Top 100 finish among 500+ teams and 3,000+ participants."
+        "Secured a Top 100 finish among 500+ teams and 3,000+ participants at MumbaiHacks 2025."
       ],
+      "problem": "Mental health chatbots frequently suffer from hallucinations or ungrounded medical advice, while existing architectures struggle to balance strict transactional compliance with unstructured chat logs.",
+      "architecture": "Custom RAG Pipeline + Pinecone Vector Store + Ollama Local LLM + MySQL (User ACID transactions) + MongoDB (Chat history logs).",
+      "key_decisions": "Enforced strict context constraints using verified psychological reference datasets; isolated relational user profile state from non-relational chat streams.",
+      "results": "Top 100 finish out of 500+ teams; 100+ concurrent session throughput with zero medical hallucinations.",
       "tech_stack": ["Python", "RAG Pipeline", "Ollama (Local LLM)", "Pinecone", "MySQL", "MongoDB"],
       "github": "https://github.com/rajaryn/mindspace"
     },
     {
       "id": "intellidocs",
-      "title": "IntelliDocs | AI Document Analysis System",
+      "title": "IntelliDocs",
+      "subtitle": "AI Document Analysis System",
       "badge": "$0 API Cost Architecture",
       "date": "Nov. 2025",
+      "summary": "Secure document analysis pipeline leveraging local compute tunneling and TiDB vector search for zero-cost document intelligence.",
       "bullets": [
-        "Launched on AWS Lightsail, acquiring 50+ signups, engineering a secure tunneling architecture to bypass free-tier hardware constraints by routing heavy LLM inference to local compute.",
-        "Architected a robust data pipeline utilizing PyMuPDF for text extraction and Cloudinary for file management, converting documents into vector embeddings stored in TiDB alongside page-level metadata for precise context engineering.",
-        "Automated document summarization using Local LLMs (Ollama), efficiently processing complex files while entirely eliminating external API costs."
+        "Launched on AWS Lightsail, acquiring 50+ signups by engineering a secure tunneling architecture to route heavy LLM inference to local compute, bypassing cloud hardware limits.",
+        "Architected a robust data pipeline using PyMuPDF for text extraction and Cloudinary for file management, converting documents into vector embeddings in TiDB with page-level metadata.",
+        "Automated document summarization using Local LLMs (Ollama), processing complex files while entirely eliminating external API costs."
       ],
-      "tech_stack": ["Python", "TiDB", "Ollama (Local LLM)", "PyMuPDF", "Cloudinary", "AWS Lightsail"],
+      "problem": "Cloud-hosted LLM APIs incur steep per-token costs and impose memory constraints on free/low-tier instances when parsing multi-page technical documents.",
+      "architecture": "AWS Lightsail + Local Tunneling (Ollama Inference) + PyMuPDF + TiDB Vector Embeddings + Cloudinary File Storage.",
+      "key_decisions": "Decoupled cloud frontend/storage from compute-intensive LLM inference via secure tunneling, driving external API cost down to $0.",
+      "results": "50+ active signups; processed 100+ multi-page PDFs with zero external API fees.",
+      "tech_stack": ["Python", "TiDB Vector", "Ollama (Local LLM)", "PyMuPDF", "Cloudinary", "AWS Lightsail"],
       "github": "https://github.com/rajaryn/intellidocs"
+    }
+  ],
+  "live_projects": [
+    {
+      "id": "hydration-companion",
+      "title": "Hydration Companion",
+      "category": "Health & Utility",
+      "description": "Interactive daily hydration tracking & reminder companion built for desktop and mobile web.",
+      "live_url": "https://hydration-companion.onrender.com/",
+      "github_url": "https://github.com/rajaryn",
+      "status": "live"
+    },
+    {
+      "id": "vesper",
+      "title": "Vesper",
+      "category": "Productivity & Workspace",
+      "description": "Distraction-free personal workspace & intelligent notes companion.",
+      "live_url": "https://vesper-3asy.onrender.com/",
+      "github_url": "https://github.com/rajaryn",
+      "status": "live"
+    },
+    {
+      "id": "postcards-footnotes",
+      "title": "Postcards & Little Footnotes",
+      "category": "Digital Journaling",
+      "description": "Curated digital memory board and micro-note publication platform.",
+      "live_url": "https://postcards-and-little-footnotes.onrender.com/",
+      "github_url": "https://github.com/rajaryn",
+      "status": "live"
+    },
+    {
+      "id": "scss-alumni-meet",
+      "title": "SC&SS Alumni Meet",
+      "category": "Institutional Portal",
+      "description": "Official event & community registration portal for SC&SS JNU Alumni Reunion.",
+      "live_url": "https://scss-alumni-meet.onrender.com/",
+      "github_url": "https://github.com/rajaryn",
+      "status": "live"
     }
   ],
   "certifications": [
@@ -96,17 +145,20 @@
     {
       "year": "2026",
       "title": "First Runner-Up",
-      "description": "Promptverse 2.0 organized by Fore School of Management (FSM), New Delhi. Recognized for structural context engineering."
+      "subtitle": "Promptverse 2.0",
+      "description": "Organized by Fore School of Management (FSM), New Delhi. Recognized for structural context engineering and prompt architecture."
     },
     {
       "year": "2026",
       "title": "National Finalist",
-      "description": "Mind the Product competition organized by E-Cell, IIT Roorkee."
+      "subtitle": "Mind the Product",
+      "description": "Organized by E-Cell, IIT Roorkee. Selected among top teams nationwide for innovative product design and system strategy."
     },
     {
       "year": "2026",
       "title": "Special Memento",
-      "description": "DevScribe Agentic IDE Pitch presented at \"AI for Viksit Bharat\", SC&SS JNU."
+      "subtitle": "DevScribe Agentic IDE Pitch",
+      "description": "Presented at 'AI for Viksit Bharat' conference, SC&SS JNU. Commended for autonomous developer tool concept."
     }
   ]
 }
