@@ -166,5 +166,12 @@
     "email": "test@example.com",
     "subject": "Inquiry",
     "message": "Hello Raj, great portfolio!"
+  },
+  {
+    "timestamp": "2026-09-27T00:24:04.870885",
+    "name": "Test User",
+    "email": "test@example.com",
+    "subject": "Inquiry",
+    "message": "Hello Raj, great portfolio!"
   }
 ]

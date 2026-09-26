@@ -128,29 +128,107 @@ body[data-state="inside"] .resume-thread { opacity: 1; }
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 2s ease, background 2s ease;
+  background-color: var(--c-ground); /* Covers the void during crossing/inside */
+  transition: background 2.5s ease;
 }
 
-body[data-state="inside"] .env-layer { opacity: 1; }
+/* Atmospheric Grain (always present) */
+.env-layer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  z-index: 1;
+}
 
+/* Dynamic Spatial Grid/Depth */
+.env-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  transition: background-image 2.5s var(--ease-out), background-size 2.5s var(--ease-out), opacity 2.5s var(--ease-out), background-position 2.5s var(--ease-out);
+  background-repeat: repeat;
+  opacity: 0; /* Default out, fades in when a zone is active */
+}
+
+body[data-active-zone] .env-layer::after {
+  opacity: 0.3;
+}
+
+/* Default / Me: Quiet, open, atmospheric */
+body[data-active-zone="me"] .env-layer::after {
+  background-image:
+    linear-gradient(rgba(237,233,225, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(237,233,225, 0.012) 1px, transparent 1px);
+  background-size: 100px 100px;
+  background-position: center top;
+  opacity: 0.25;
+}
+
+/* Projects: Structured / denser */
+body[data-active-zone*="project"] .env-layer::after {
+  background-image:
+    linear-gradient(rgba(237,233,225, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(237,233,225, 0.018) 1px, transparent 1px),
+    radial-gradient(circle at center, rgba(184,155,107, 0.035) 0%, transparent 2px);
+  background-size: 60px 60px, 60px 60px, 60px 60px;
+  background-position: 0 0, 0 0, -1px -1px;
+  opacity: 0.45;
+}
+
+/* Experiments: Irregular, offset */
+body[data-active-zone="experiments"] .env-layer::after {
+  background-image:
+    linear-gradient(rgba(237,233,225, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(237,233,225, 0.012) 1px, transparent 1px),
+    linear-gradient(45deg, rgba(184,155,107, 0.01) 1px, transparent 1px);
+  background-size: 80px 120px, 120px 80px, 200px 200px;
+  background-position: center center;
+  opacity: 0.5;
+}
+
+/* Traces: Linear, archival */
+body[data-active-zone="traces"] .env-layer::after {
+  background-image:
+    linear-gradient(rgba(237,233,225, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(237,233,225, 0.008) 1px, transparent 1px);
+  background-size: 100% 3rem, 120px 100%;
+  background-position: 0 1.5rem, 4rem 0;
+  opacity: 0.4;
+}
+
+/* Contact: Sparse, approaching the edge */
+body[data-active-zone="contact"] .env-layer::after {
+  background-image:
+    linear-gradient(rgba(237,233,225, 0.01) 1px, transparent 1px);
+  background-size: 100% 300px;
+  background-position: 0 bottom;
+  opacity: 0.15;
+}
+
+/* Subtle lighting shifts based on pos */
 body[data-active-zone-pos="left"] .env-layer {
   background: radial-gradient(
     ellipse 65% 55% at 10% 70%,
-    rgba(175,135,65,0.055) 0%,
-    transparent 100%
+    rgba(175,135,65,0.035) 0%,
+    var(--c-ground) 100%
   );
 }
 
 body[data-active-zone-pos="right"] .env-layer {
   background: radial-gradient(
     ellipse 60% 50% at 88% 30%,
-    rgba(65,100,155,0.05) 0%,
-    transparent 100%
+    rgba(65,100,155,0.035) 0%,
+    var(--c-ground) 100%
   );
 }
 
-body[data-active-zone-pos="center"] .env-layer { background: none; }
+body[data-active-zone-pos="center"] .env-layer {
+  background: var(--c-ground);
+}
 
 /* ============================================================
    THRESHOLD — fixed full-viewport overlay
@@ -257,9 +335,9 @@ body[data-state="inside"] .seam { opacity: 0; transition: opacity 0.5s ease; }
 .world {
   position: relative;
   z-index: 2;
-  background-color: var(--c-ground);
+  background-color: transparent; /* Allow .env-layer depth to show through */
   min-height: 100vh;
-  display: flow-root; /* Establish BFC to prevent .zone--me's large margin-top from collapsing out and revealing the body's dark void background */
+  display: flow-root; /* Establish BFC to prevent .zone--me's large margin-top from collapsing out */
 }
 
 body:not([data-state="inside"]) .world { pointer-events: none; }
