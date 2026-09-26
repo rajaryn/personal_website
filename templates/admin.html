@@ -4,19 +4,52 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Portal | Raj Aryan Portfolio</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
+    :root {
+      --c-void: #0a0a0a;
+      --c-ground: #101010;
+      --c-accent: #b89b6b;
+      --c-dim: rgba(237,233,225,0.4);
+      --c-muted: rgba(237,233,225,0.6);
+      --c-text: rgba(237,233,225,0.9);
+      --f-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --f-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    body {
+      background-color: var(--c-ground);
+      color: var(--c-text);
+      font-family: var(--f-sans);
+      margin: 0; padding: 0;
+      line-height: 1.6;
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 3rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .nav-logo {
+      font-family: var(--f-mono);
+      font-size: 0.8rem;
+      color: var(--c-text);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .nav-right { display: flex; gap: 1rem; align-items: center; }
+    .theme-toggle { display: none; } /* Disabled as theme is now fixed dark */
+    
     .admin-container {
       max-width: 900px;
       margin: 4rem auto;
       padding: 0 1.5rem;
     }
     .admin-card {
-      background-color: var(--bg-card);
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-md);
+      background-color: var(--c-void);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
       padding: 2.25rem;
-      box-shadow: var(--shadow-md);
       margin-bottom: 2rem;
     }
     .admin-header {
@@ -25,52 +58,122 @@
       align-items: center;
       margin-bottom: 2rem;
       padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border-light);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
     }
     .admin-title {
-      font-size: 1.75rem;
-      font-weight: 800;
-      color: var(--text-main);
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: var(--c-text);
+      margin: 0 0 0.5rem 0;
+      letter-spacing: 0.05em;
     }
-    .flash-messages {
-      margin-bottom: 1.5rem;
+    
+    .btn {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      font-family: var(--f-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-decoration: none;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      background: transparent;
     }
+    .btn-primary {
+      background: var(--c-text);
+      color: var(--c-void);
+    }
+    .btn-primary:hover {
+      background: var(--c-accent);
+    }
+    .btn-secondary {
+      color: var(--c-muted);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .btn-secondary:hover {
+      color: var(--c-text);
+      border-color: var(--c-text);
+    }
+    
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label {
+      display: block;
+      font-family: var(--f-mono);
+      font-size: 0.75rem;
+      color: var(--c-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+    .form-input {
+      width: 100%;
+      padding: 0.8rem;
+      background-color: var(--c-ground);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--c-text);
+      font-family: var(--f-sans);
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--c-accent);
+    }
+    
+    .flash-messages { margin-bottom: 1.5rem; }
     .alert {
       padding: 0.85rem 1.25rem;
-      border-radius: var(--radius-sm);
+      border-radius: 4px;
       font-size: 0.9rem;
       margin-bottom: 1rem;
+      border: 1px solid;
     }
-    .alert-success { background-color: rgba(6, 95, 70, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .alert-danger { background-color: rgba(153, 27, 27, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-    .alert-info { background-color: rgba(30, 58, 138, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .alert-success { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+    .alert-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
+    .alert-info { background: rgba(184, 155, 107, 0.1); color: var(--c-accent); border-color: rgba(184, 155, 107, 0.3); }
     
     .file-drop-zone {
-      border: 2px dashed var(--accent-maroon-border);
-      background-color: var(--accent-maroon-light);
+      border: 1px dashed rgba(255,255,255,0.2);
+      background-color: var(--c-ground);
       padding: 2rem;
-      border-radius: var(--radius-md);
+      border-radius: 6px;
       text-align: center;
       cursor: pointer;
-      transition: var(--transition);
+      transition: all 0.2s ease;
       margin-bottom: 1.25rem;
     }
     .file-drop-zone:hover {
-      border-color: var(--accent-maroon);
-      background-color: rgba(179, 36, 69, 0.2);
+      border-color: var(--c-accent);
+      background-color: rgba(184, 155, 107, 0.05);
     }
+    
     .json-editor {
       width: 100%;
       min-height: 420px;
-      font-family: var(--font-mono);
-      font-size: 0.875rem;
-      padding: 1rem;
+      font-family: var(--f-mono);
+      font-size: 0.85rem;
+      padding: 1.25rem;
       background-color: #0d1117;
-      color: #79c0ff;
+      color: #e6edf3;
       border: 1px solid #30363d;
-      border-radius: var(--radius-sm);
+      border-radius: 6px;
       resize: vertical;
       line-height: 1.5;
+      box-sizing: border-box;
+    }
+    .json-editor:focus {
+      outline: none;
+      border-color: var(--c-accent);
+    }
+    code {
+      font-family: var(--f-mono);
+      background: rgba(255,255,255,0.1);
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      font-size: 0.85em;
     }
   </style>
 </head>
@@ -114,7 +217,7 @@
       <!-- ADMIN LOGIN FORM -->
       <div class="admin-card" style="max-width: 440px; margin: 3rem auto;">
         <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; text-align: center;">Admin Access</h2>
-        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.75rem; text-align: center;">Enter your admin password to manage resume &amp; portfolio sections.</p>
+        <p style="font-size: 0.9rem; color: var(--c-muted); margin-bottom: 1.75rem; text-align: center;">Enter your admin password to manage resume &amp; portfolio sections.</p>
 
         <form action="{{ url_for('admin_login') }}" method="POST">
           <div class="form-group">
@@ -133,24 +236,24 @@
       <div class="admin-header">
         <div>
           <h1 class="admin-title">Portfolio Control Panel</h1>
-          <p style="font-size: 0.925rem; color: var(--text-muted);">Upload a new PDF resume or edit your portfolio sections in real-time.</p>
+          <p style="font-size: 0.925rem; color: var(--c-muted);">Upload a new PDF resume or edit your portfolio sections in real-time.</p>
         </div>
       </div>
 
       <!-- SECTION 1: UPLOAD NEW PDF RESUME -->
       <div class="admin-card">
         <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem;">📄 1. Upload Updated Resume PDF</h3>
-        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem;">Uploading a file replaces <code>static/resume.pdf</code>. All "View Resume PDF" links on the site will automatically serve this file.</p>
+        <p style="font-size: 0.9rem; color: var(--c-muted); margin-bottom: 1.25rem;">Uploading a file replaces <code>static/resume.pdf</code>. All "View Resume PDF" links on the site will automatically serve this file.</p>
 
         <form action="{{ url_for('upload_resume') }}" method="POST" enctype="multipart/form-data">
           <div class="file-drop-zone" onclick="document.getElementById('resume_file').click();">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 0.5rem; color: var(--accent-maroon);">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 0.5rem; color: var(--c-accent);">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="17 8 12 3 7 8"></polyline>
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
-            <div style="font-weight: 600; color: var(--text-main);">Click to Select or Drop New PDF Resume</div>
-            <div style="font-size: 0.8rem; color: var(--text-subtle); margin-top: 0.25rem;" id="file-name-display">Only .pdf files are accepted</div>
+            <div style="font-weight: 600; color: var(--c-text);">Click to Select or Drop New PDF Resume</div>
+            <div style="font-size: 0.8rem; color: var(--c-muted); margin-top: 0.25rem;" id="file-name-display">Only .pdf files are accepted</div>
           </div>
           <input type="file" id="resume_file" name="resume_file" accept=".pdf" style="display: none;" onchange="document.getElementById('file-name-display').textContent = 'Selected: ' + this.files[0].name;">
 
@@ -163,7 +266,7 @@
       <!-- SECTION 2: EDIT PORTFOLIO SECTIONS LIVE -->
       <div class="admin-card">
         <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem;">⚙️ 2. Edit Portfolio Data Live (JSON)</h3>
-        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        <p style="font-size: 0.9rem; color: var(--c-muted); margin-bottom: 1.25rem;">
           Modify any text, skills, project bullet points, education, or achievements below. Changes take effect on the main website immediately upon saving.
         </p>
 
@@ -186,7 +289,5 @@
     {% endif %}
 
   </div>
-
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

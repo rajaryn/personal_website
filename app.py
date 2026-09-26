@@ -3,12 +3,23 @@ import json
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for, session, flash
 from a2wsgi import WSGIMiddleware
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if present
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "raj_aryan_portfolio_secret_2026")
 
 # Admin credentials (default password: "raj123" - can be overridden via environment variable ADMIN_PASSWORD)
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "raj123")
+
+# Admin Path (default: "/admin" - can be customized via environment variable ADMIN_PATH for security)
+ADMIN_PATH = os.environ.get("ADMIN_PATH", "/admin").rstrip("/")
+if not ADMIN_PATH.startswith("/"):
+    ADMIN_PATH = f"/{ADMIN_PATH}"
+if not ADMIN_PATH:
+    ADMIN_PATH = "/admin"
 
 # Data File Paths
 DATA_FILE = os.path.join(app.root_path, "resume_data.json")
@@ -115,7 +126,7 @@ def contact():
 # SECURED ADMIN PORTAL & RESUME UPLOADER
 # ==========================================
 
-@app.route("/admin", methods=["GET"])
+@app.route(f"{ADMIN_PATH}", methods=["GET"])
 def admin_dashboard():
     """Admin Dashboard Page (Protected)."""
     if not session.get("admin_logged_in"):
@@ -126,7 +137,7 @@ def admin_dashboard():
     return render_template("admin.html", logged_in=True, portfolio=portfolio_data, portfolio_json=portfolio_json_str)
 
 
-@app.route("/admin/login", methods=["POST"])
+@app.route(f"{ADMIN_PATH}/login", methods=["POST"])
 def admin_login():
     """Authenticate Admin user."""
     password = request.form.get("password", "").strip()
@@ -138,7 +149,7 @@ def admin_login():
     return redirect(url_for("admin_dashboard"))
 
 
-@app.route("/admin/logout", methods=["GET", "POST"])
+@app.route(f"{ADMIN_PATH}/logout", methods=["GET", "POST"])
 def admin_logout():
     """Log out Admin user."""
     session.pop("admin_logged_in", None)
@@ -146,7 +157,7 @@ def admin_logout():
     return redirect(url_for("admin_dashboard"))
 
 
-@app.route("/admin/upload-resume", methods=["POST"])
+@app.route(f"{ADMIN_PATH}/upload-resume", methods=["POST"])
 def upload_resume():
     """Upload a new PDF resume and update static/resume.pdf."""
     if not session.get("admin_logged_in"):
@@ -171,7 +182,7 @@ def upload_resume():
     return redirect(url_for("admin_dashboard"))
 
 
-@app.route("/admin/update-portfolio", methods=["POST"])
+@app.route(f"{ADMIN_PATH}/update-portfolio", methods=["POST"])
 def update_portfolio():
     """Update portfolio JSON data directly from Admin Portal."""
     if not session.get("admin_logged_in"):

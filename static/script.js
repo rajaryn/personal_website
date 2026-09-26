@@ -81,6 +81,8 @@
   }
 
   function injectPanels() {
+    if (!threshold) return;
+
     function makePanel(cls, posStyles) {
       const el = document.createElement('div');
       el.className = cls;
