@@ -11,10 +11,8 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "raj_aryan_portfolio_secret_2026")
 
-# Admin credentials (default password: "raj123" - can be overridden via environment variable ADMIN_PASSWORD)
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "raj123")
 
-# Admin Path (default: "/admin" - can be customized via environment variable ADMIN_PATH for security)
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "raj123")
 ADMIN_PATH = os.environ.get("ADMIN_PATH", "/admin").rstrip("/")
 if not ADMIN_PATH.startswith("/"):
     ADMIN_PATH = f"/{ADMIN_PATH}"
