@@ -65,6 +65,8 @@
      ============================================================ */
 
   function init() {
+    initCursorParallax();
+
     if (prefersReducedMotion()) {
       initReducedMotion();
       return;
@@ -78,6 +80,21 @@
 
     if (returnBtn) returnBtn.addEventListener('click', returnToOutside);
     if (contactForm) contactForm.addEventListener('submit', handleContactSubmit);
+  }
+
+  function initCursorParallax() {
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+
+    document.addEventListener('pointermove', (event) => {
+      const cx = event.clientX;
+      const cy = event.clientY;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      // Values from -0.5 to 0.5 — used to displace background geometry layers
+      document.documentElement.style.setProperty('--cursor-pan-x', (cx / w - 0.5).toFixed(4));
+      document.documentElement.style.setProperty('--cursor-pan-y', (cy / h - 0.5).toFixed(4));
+    }, { passive: true });
   }
 
   function injectPanels() {
@@ -115,6 +132,9 @@
       rafPending = false;
       const vh = window.innerHeight;
       const y  = window.scrollY;
+      
+      document.documentElement.style.setProperty('--scroll-y', `${y}px`);
+      
       const endPx = CROSS_END_VH * vh;
       const progress = Math.max(0, Math.min(1, y / endPx));
 

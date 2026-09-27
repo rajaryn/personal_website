@@ -132,26 +132,27 @@ body[data-state="inside"] .resume-thread { opacity: 1; }
   transition: background 2.5s ease;
 }
 
-/* Atmospheric Grain (always present) */
-.env-layer::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0.15;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  mix-blend-mode: overlay;
-  z-index: 1;
-}
 
 /* Dynamic Spatial Grid/Depth */
 .env-layer::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -20%;
   z-index: 2;
-  transition: background-image 2.5s var(--ease-out), background-size 2.5s var(--ease-out), opacity 2.5s var(--ease-out), background-position 2.5s var(--ease-out);
+  transition: background-image 2.5s var(--ease-out), 
+              background-size 2.5s var(--ease-out), 
+              opacity 2.5s var(--ease-out), 
+              background-position 2.5s var(--ease-out),
+              scale 2.5s var(--ease-out),
+              rotate 2.5s var(--ease-out),
+              translate 0.15s linear;
   background-repeat: repeat;
   opacity: 0; /* Default out, fades in when a zone is active */
+  
+  /* Scroll & cursor parallax (instant), Scale & rot (transitioned) */
+  translate: calc(var(--cursor-pan-x, 0) * -18px) calc(var(--cursor-pan-y, 0) * -18px + var(--scroll-y, 0px) * -0.035);
+  scale: var(--env-scale, 1);
+  rotate: var(--env-rot, 0deg);
 }
 
 body[data-active-zone] .env-layer::after {
@@ -160,6 +161,8 @@ body[data-active-zone] .env-layer::after {
 
 /* Default / Me: Quiet, open, atmospheric */
 body[data-active-zone="me"] .env-layer::after {
+  --env-scale: 1;
+  --env-rot: 0deg;
   background-image:
     linear-gradient(rgba(237,233,225, 0.012) 1px, transparent 1px),
     linear-gradient(90deg, rgba(237,233,225, 0.012) 1px, transparent 1px);
@@ -170,6 +173,8 @@ body[data-active-zone="me"] .env-layer::after {
 
 /* Projects: Structured / denser */
 body[data-active-zone*="project"] .env-layer::after {
+  --env-scale: 1.05;
+  --env-rot: 0.5deg;
   background-image:
     linear-gradient(rgba(237,233,225, 0.018) 1px, transparent 1px),
     linear-gradient(90deg, rgba(237,233,225, 0.018) 1px, transparent 1px),
@@ -181,6 +186,8 @@ body[data-active-zone*="project"] .env-layer::after {
 
 /* Experiments: Irregular, offset */
 body[data-active-zone="experiments"] .env-layer::after {
+  --env-scale: 1.12;
+  --env-rot: -0.5deg;
   background-image:
     linear-gradient(rgba(237,233,225, 0.015) 1px, transparent 1px),
     linear-gradient(90deg, rgba(237,233,225, 0.012) 1px, transparent 1px),
@@ -192,6 +199,8 @@ body[data-active-zone="experiments"] .env-layer::after {
 
 /* Traces: Linear, archival */
 body[data-active-zone="traces"] .env-layer::after {
+  --env-scale: 0.95;
+  --env-rot: 0.2deg;
   background-image:
     linear-gradient(rgba(237,233,225, 0.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(237,233,225, 0.008) 1px, transparent 1px);
@@ -202,6 +211,8 @@ body[data-active-zone="traces"] .env-layer::after {
 
 /* Contact: Sparse, approaching the edge */
 body[data-active-zone="contact"] .env-layer::after {
+  --env-scale: 1.02;
+  --env-rot: 0deg;
   background-image:
     linear-gradient(rgba(237,233,225, 0.01) 1px, transparent 1px);
   background-size: 100% 300px;
@@ -342,6 +353,57 @@ body[data-state="inside"] .seam { opacity: 0; transition: opacity 0.5s ease; }
 
 body:not([data-state="inside"]) .world { pointer-events: none; }
 body[data-state="inside"] .world { pointer-events: auto; }
+
+
+
+/* ============================================================
+   CURSOR DEPTH PARALLAX
+   Layers at different depths shift at different amplitudes.
+   All transforms are on children of .zone-inner — safe from
+   entrance animations which live on .zone-inner itself.
+
+   Depth order (strongest → subtlest):
+     background geometry  (-18px, .env-layer::after above)
+     section titles       (-6px)
+     body text            (-3px)
+     metadata / evidence  (-1.5px)
+   ============================================================ */
+
+@media (pointer: fine) {
+
+  /* Titles — medium depth, most perceptible layer */
+  .zone-name,
+  .section-subtitle,
+  .me-name {
+    transition: transform 0.12s linear;
+    transform: translate(
+      calc(var(--cursor-pan-x, 0) * -6px),
+      calc(var(--cursor-pan-y, 0) * -6px)
+    );
+  }
+
+  /* Body / statement text — half depth of titles */
+  .zone-statement,
+  .me-statement {
+    transition: transform 0.12s linear;
+    transform: translate(
+      calc(var(--cursor-pan-x, 0) * -3px),
+      calc(var(--cursor-pan-y, 0) * -3px)
+    );
+  }
+
+  /* Metadata — barely perceptible, creates depth illusion */
+  .zone-evidence,
+  .zone-header,
+  .me-context,
+  .section-title {
+    transition: transform 0.12s linear;
+    transform: translate(
+      calc(var(--cursor-pan-x, 0) * -1.5px),
+      calc(var(--cursor-pan-y, 0) * -1.5px)
+    );
+  }
+}
 
 /* ============================================================
    ZONE: ME
