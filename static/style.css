@@ -338,12 +338,30 @@ body[data-state="inside"] .threshold {
 
 .seam-label {
   font-family: var(--f-mono);
-  font-size: 0.59rem;
-  font-weight: 300;
-  color: var(--c-dim);
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--c-muted);
   letter-spacing: 0.28em;
   user-select: none;
   transition: color 0.4s ease, opacity 0.4s ease;
+}
+
+.scroll-arrow {
+  display: inline-block;
+  animation: bounceDown 2s infinite ease-in-out;
+  margin-left: 0.3em;
+}
+
+@keyframes bounceDown {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(4px);
+  }
+  60% {
+    transform: translateY(2px);
+  }
 }
 
 body[data-state="approaching"] .seam-line { background-color: rgba(184,155,107,0.45); }
@@ -429,6 +447,90 @@ body[data-state="inside"] .world { pointer-events: auto; }
     transform: translate(
       calc(var(--cursor-pan-x, 0) * -1.5px),
       calc(var(--cursor-pan-y, 0) * -1.5px)
+    );
+  }
+
+  /* Project section depth layers */
+  .proj-name {
+    transition: transform 0.12s linear, color 0.3s ease;
+    transform: translate(
+      calc(var(--cursor-pan-x, 0) * -6px),
+      calc(var(--cursor-pan-y, 0) * -6px)
+    );
+  }
+
+  .proj-tagline,
+  .proj-summary,
+  .exp-name {
+    transition: transform 0.12s linear;
+    transform: translate(
+      calc(var(--cursor-pan-x, 0) * -3px),
+      calc(var(--cursor-pan-y, 0) * -3px)
+    );
+  }
+
+  .proj-num,
+  .proj-badge,
+  .proj-date,
+  .pev-val,
+  .proj-stack,
+  .exp-nature,
+  .exp-note,
+  .trace-name,
+  .trace-where,
+  .trace-detail,
+  .chapter-label {
+    transition: transform 0.12s linear;
+    transform: translate(
+      calc(var(--cursor-pan-x, 0) * -1.5px),
+      calc(var(--cursor-pan-y, 0) * -1.5px)
+    );
+  }
+}
+
+/* ============================================================
+   TOUCH / GYRO PARALLAX
+   On coarse-pointer devices (phones/tablets), JS feeds
+   --cursor-pan-x/y from touchmove or deviceorientation.
+   Transitions are slower (0.35s) for a gentler feel.
+   ============================================================ */
+
+@media (pointer: coarse) {
+
+  .zone-name,
+  .section-subtitle,
+  .me-name,
+  .proj-name {
+    transition: transform 0.35s ease;
+    transform: translate(
+      calc(var(--cursor-pan-x, 0) * -5px),
+      calc(var(--cursor-pan-y, 0) * -5px)
+    );
+  }
+
+  .zone-statement,
+  .me-statement,
+  .proj-tagline,
+  .proj-summary,
+  .exp-name {
+    transition: transform 0.35s ease;
+    transform: translate(
+      calc(var(--cursor-pan-x, 0) * -2.5px),
+      calc(var(--cursor-pan-y, 0) * -2.5px)
+    );
+  }
+
+  .section-title,
+  .proj-num,
+  .proj-badge,
+  .exp-nature,
+  .exp-note,
+  .trace-name,
+  .trace-where {
+    transition: transform 0.35s ease;
+    transform: translate(
+      calc(var(--cursor-pan-x, 0) * -1px),
+      calc(var(--cursor-pan-y, 0) * -1px)
     );
   }
 }
@@ -681,39 +783,259 @@ body[data-state="inside"] .world { pointer-events: auto; }
 }
 
 /* ============================================================
-   ZONE TYPE: PROJECT
-   Directional entry: left-position zones slide from left,
-   right-position zones slide from right.
+   ZONE: PROJECTS — single stable destination
    ============================================================ */
 
-/* Left-leaning positions: approaching/distant → slide from left */
-.zone--project[data-zone-pos="left"][data-zone-state="distant"] .zone-inner,
-.zone--project[data-zone-pos="left"][data-zone-state="approaching"] .zone-inner {
-  transform: translateX(-18px);
+.zone--projects {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 18vh 2rem 16vh;
 }
 
-.zone--project[data-zone-pos="left"][data-zone-state="leaving"] .zone-inner,
-.zone--project[data-zone-pos="left"][data-zone-state="past"] .zone-inner {
-  transform: translateX(-9px);
+.zone--projects[data-zone-state="distant"] .zone-inner,
+.zone--projects[data-zone-state="approaching"] .zone-inner {
+  transform: translateY(20px);
+  opacity: 0;
 }
 
-/* Right-leaning positions: approaching/distant → slide from right */
-.zone--project[data-zone-pos="right"][data-zone-state="distant"] .zone-inner,
-.zone--project[data-zone-pos="right"][data-zone-state="approaching"] .zone-inner {
-  transform: translateX(18px);
+.zone--projects[data-zone-state="leaving"] .zone-inner,
+.zone--projects[data-zone-state="past"] .zone-inner {
+  transform: translateY(-10px);
 }
 
-.zone--project[data-zone-pos="right"][data-zone-state="leaving"] .zone-inner,
-.zone--project[data-zone-pos="right"][data-zone-state="past"] .zone-inner {
-  transform: translateX(9px);
+.zone--projects[data-zone-state="active"] .zone-inner {
+  transform: translateY(0);
+  opacity: 1;
 }
 
-/* Active: centered for all project positions */
-.zone--project[data-zone-state="active"] .zone-inner { transform: translateX(0); }
+/* ── Project List ─────────────────────────────────────────── */
+
+.proj-list {
+  margin-top: 4rem;
+  border-top: 1px solid rgba(237,233,225,0.06);
+}
+
+/* ── Project Row ──────────────────────────────────────────── */
+
+.proj-row {
+  border-bottom: 1px solid rgba(237,233,225,0.06);
+  cursor: pointer;
+  outline: none;
+  overflow: hidden; /* clips the panel — this is the containment boundary */
+}
+
+.proj-row:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -1px;
+}
+
+/* Stable header — always in flow, always same height */
+.proj-header {
+  display: grid;
+  grid-template-columns: 3rem 1fr auto;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.8rem 1rem 1.8rem 0;
+  transition: opacity 0.25s ease;
+  user-select: none;
+}
+
+.proj-row:hover .proj-header,
+.proj-row[aria-expanded="true"] .proj-header {
+  opacity: 1;
+}
+
+.proj-num {
+  font-family: var(--f-mono);
+  font-size: 0.6rem;
+  color: var(--c-dim);
+  letter-spacing: 0.12em;
+  padding-top: 0.1rem;
+}
+
+.proj-head-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.proj-name {
+  font-family: var(--f-serif);
+  font-size: clamp(1.4rem, 2.8vw, 2rem);
+  font-weight: 400;
+  font-style: italic;
+  color: rgba(237,233,225,0.9);
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  transition: color 0.3s ease;
+}
+
+.proj-row:hover .proj-name,
+.proj-row[aria-expanded="true"] .proj-name {
+  color: var(--c-paper);
+}
+
+.proj-tagline {
+  font-family: var(--f-mono);
+  font-size: 0.65rem;
+  color: var(--c-dim);
+  letter-spacing: 0.06em;
+}
+
+.proj-cue {
+  font-family: var(--f-mono);
+  font-size: 0.75rem;
+  color: var(--c-dim);
+  transition: transform 0.45s var(--ease-out), color 0.3s ease;
+}
+
+.proj-row[aria-expanded="true"] .proj-cue {
+  transform: rotate(90deg);
+  color: var(--c-accent);
+}
+
+/* ── Detail Panel ─────────────────────────────────────────── */
+/*
+   The panel uses max-height clipping for smooth open/close.
+   It expands WITHIN the proj-row which has overflow:hidden.
+   This means: the panel's height is fully self-contained
+   inside each proj-row. Nothing outside ever shifts.
+*/
+
+.proj-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.proj-row[aria-expanded="true"] .proj-panel {
+  max-height: 2000px; /* generous upper bound — content determines actual height */
+}
+
+.proj-panel-inner {
+  padding: 0 1rem 2.5rem 4.5rem; /* indented to align under the project name */
+}
+
+.proj-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.35s ease 0.15s, transform 0.5s var(--ease-out) 0.1s;
+}
+
+.proj-row[aria-expanded="true"] .proj-panel-body {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Panel interior */
+
+.proj-meta {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  font-family: var(--f-mono);
+  font-size: 0.62rem;
+}
+
+.proj-badge {
+  color: var(--c-accent);
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+}
+
+.proj-date {
+  color: var(--c-dim);
+  letter-spacing: 0.04em;
+}
+
+.proj-summary {
+  font-size: 0.97rem;
+  line-height: 1.75;
+  color: rgba(237,233,225,0.68);
+  max-width: 58ch;
+}
+
+.proj-evidence {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  border-left: 1px solid rgba(237,233,225,0.06);
+  padding-left: 1.2rem;
+}
+
+.pev-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.pev-key {
+  font-family: var(--f-mono);
+  font-size: 0.58rem;
+  color: var(--c-dim);
+  letter-spacing: 0.18em;
+  text-transform: lowercase;
+}
+
+.pev-val {
+  font-size: 0.88rem;
+  color: rgba(237,233,225,0.58);
+  line-height: 1.65;
+  max-width: 60ch;
+}
+
+.proj-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.proj-stack-atom {
+  font-family: var(--f-mono);
+  font-size: 0.65rem;
+  color: var(--c-dim);
+}
+
+.proj-stack-sep {
+  font-family: var(--f-mono);
+  font-size: 0.6rem;
+  color: var(--c-dim);
+  opacity: 0.2;
+  padding: 0 0.4rem;
+}
+
+.proj-actions {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding-top: 0.25rem;
+}
+
+.proj-try {
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  color: var(--c-paper);
+  border-bottom: 1px solid var(--c-accent);
+  padding-bottom: 0.18rem;
+  letter-spacing: 0.1em;
+  transition: color 0.25s ease;
+}
+.proj-try:hover { color: var(--c-accent); }
+
+.proj-src {
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  color: var(--c-dim);
+  letter-spacing: 0.1em;
+  transition: color 0.25s ease;
+}
+.proj-src:hover { color: var(--c-paper); }
 
 /* ============================================================
-   ZONE TYPE: EXPERIMENTS
-   Smaller, lighter. Scale-based transition (things appearing/receding).
+   ZONE TYPE: EXPERIMENTS — scale + translateY
    ============================================================ */
 
 .zone--experiments[data-zone-state="distant"] .zone-inner,
@@ -731,8 +1053,7 @@ body[data-state="inside"] .world { pointer-events: auto; }
 }
 
 /* ============================================================
-   ZONE TYPE: TRACES
-   Personal fragments. Gentle translateY only — rising from below.
+   ZONE TYPE: TRACES — translateY only
    ============================================================ */
 
 .zone--traces[data-zone-state="distant"] .zone-inner,
@@ -748,8 +1069,7 @@ body[data-state="inside"] .world { pointer-events: auto; }
 .zone--traces[data-zone-state="active"] .zone-inner { transform: translateY(0); }
 
 /* ============================================================
-   ZONE TYPE: CONTACT
-   World's edge. Quiet approach.
+   ZONE TYPE: CONTACT — gentle translateY
    ============================================================ */
 
 .zone--contact[data-zone-state="distant"] .zone-inner,
@@ -760,177 +1080,25 @@ body[data-state="inside"] .world { pointer-events: auto; }
 .zone--contact[data-zone-state="active"] .zone-inner { transform: translateY(0); }
 
 /* ============================================================
-   ZONE HEADER — shared by all project zones
+   SECTION TRANSITIONS
    ============================================================ */
 
-.zone-index {
-  display: block;
-  font-family: var(--f-mono);
-  font-size: 0.6rem;
-  font-weight: 300;
-  color: var(--c-dim);
-  letter-spacing: 0.22em;
-  margin-bottom: 0.9rem;
-  opacity: 0.55;
+:root {
+  --section-gap-height: 15vh;
+  --section-gap-margin: 10vh;
 }
 
-.zone-name {
-  display: block;
-  font-size: clamp(2rem, 4vw, 4rem);
-  font-weight: 400;
-  font-style: italic;
-  color: rgba(237,233,225,0.92);
-  letter-spacing: -0.025em;
-  line-height: 1.1;
-  margin-bottom: 0.5rem;
+.zone-transition {
+  width: 1px;
+  height: var(--section-gap-height);
+  margin: var(--section-gap-margin) auto;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(237, 233, 225, 0.1) 50%,
+    transparent 100%
+  );
 }
-
-.zone-sub {
-  font-family: var(--f-mono);
-  font-size: 0.7rem;
-  font-weight: 300;
-  color: var(--c-dim);
-  letter-spacing: 0.06em;
-  margin-bottom: 0.35rem;
-}
-
-.zone-badge {
-  font-family: var(--f-mono);
-  font-size: 0.63rem;
-  font-weight: 300;
-  color: var(--c-accent);
-  letter-spacing: 0.05em;
-  opacity: 0.8;
-  margin-bottom: 0.35rem;
-}
-
-.zone-date {
-  font-family: var(--f-mono);
-  font-size: 0.62rem;
-  font-weight: 300;
-  color: var(--c-dim);
-  letter-spacing: 0.04em;
-  opacity: 0.5;
-}
-
-/* ============================================================
-   ZONE STATEMENT
-   ============================================================ */
-
-.zone-statement {
-  font-size: 1.02rem;
-  line-height: 1.78;
-  color: rgba(237,233,225,0.68);
-  max-width: 520px;
-  margin-top: 2rem;
-  margin-bottom: 2.2rem;
-}
-
-/* ============================================================
-   ZONE EVIDENCE — staggered reveal on active
-   Evidence rows are invisible by default.
-   When zone becomes active, rows animate in sequentially.
-   Border mirrors zone position (left-pos: left border, right-pos: right border).
-   ============================================================ */
-
-.zone-evidence {
-  margin-top: 2rem;
-  margin-bottom: 2.2rem;
-  padding-left: 1.2rem;
-  border-left: 1px solid rgba(237,233,225,0.08);
-  max-width: 520px;
-  display: flex;
-  flex-direction: column;
-  gap: 1.4rem;
-}
-
-/* Right-leaning zones: mirror the evidence border */
-.zone--project[data-zone-pos="right"] .zone-evidence {
-  padding-left: 0;
-  padding-right: 1.2rem;
-  border-left: none;
-  border-right: 1px solid rgba(237,233,225,0.08);
-}
-
-.zone-evidence--compact { gap: 1.1rem; }
-
-/* Evidence rows: hidden until zone is active */
-.ev-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.22rem;
-  opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.65s ease, transform 0.65s var(--ease-out);
-}
-
-/* Stagger: rows 1-4 each get a longer delay */
-.zone[data-zone-state="active"] .ev-row:nth-child(1) { opacity: 1; transform: none; transition-delay: 0.08s; }
-.zone[data-zone-state="active"] .ev-row:nth-child(2) { opacity: 1; transform: none; transition-delay: 0.17s; }
-.zone[data-zone-state="active"] .ev-row:nth-child(3) { opacity: 1; transform: none; transition-delay: 0.26s; }
-.zone[data-zone-state="active"] .ev-row:nth-child(4) { opacity: 1; transform: none; transition-delay: 0.35s; }
-
-.ev-key {
-  font-family: var(--f-mono);
-  font-size: 0.62rem;
-  font-weight: 300;
-  color: var(--c-dim);
-  letter-spacing: 0.16em;
-  text-transform: lowercase;
-}
-
-.ev-val {
-  font-size: 0.9rem;
-  color: rgba(237,233,225,0.58);
-  line-height: 1.62;
-}
-
-/* ============================================================
-   ZONE STACK
-   ============================================================ */
-
-.zone-stack {
-  display: flex;
-  flex-wrap: wrap;
-  margin-bottom: 1.8rem;
-}
-
-.stack-atom {
-  font-family: var(--f-mono);
-  font-size: 0.68rem;
-  font-weight: 300;
-  color: var(--c-dim);
-  letter-spacing: 0.04em;
-}
-
-.stack-sep {
-  font-family: var(--f-mono);
-  font-size: 0.6rem;
-  color: var(--c-dim);
-  opacity: 0.22;
-  padding: 0 0.45rem;
-}
-
-/* ============================================================
-   ZONE ACTIONS
-   ============================================================ */
-
-.zone-actions {
-  display: flex;
-  gap: 2.5rem;
-  flex-wrap: wrap;
-}
-
-.zone-action {
-  font-family: var(--f-mono);
-  font-size: 0.7rem;
-  font-weight: 300;
-  color: var(--c-accent);
-  letter-spacing: 0.08em;
-  transition: opacity 0.2s ease;
-}
-
-.zone-action:hover { opacity: 0.6; }
 
 /* ============================================================
    ZONE LABEL — used by experiments/traces/contact
@@ -1298,27 +1466,18 @@ body[data-state="inside"] .world { pointer-events: auto; }
     padding-right: 1.25rem;
   }
 
-  /* Mobile: translateX becomes translateY for all projects */
-  .zone--project[data-zone-pos="left"][data-zone-state="distant"] .zone-inner,
-  .zone--project[data-zone-pos="left"][data-zone-state="approaching"] .zone-inner,
-  .zone--project[data-zone-pos="right"][data-zone-state="distant"] .zone-inner,
-  .zone--project[data-zone-pos="right"][data-zone-state="approaching"] .zone-inner {
-    transform: translateY(10px);
+  .zone--projects { padding-left: 1.25rem; padding-right: 1.25rem; }
+
+  .proj-header {
+    grid-template-columns: 2.5rem 1fr auto;
+    gap: 1rem;
+    padding: 1.4rem 0.5rem 1.4rem 0;
   }
 
-  .zone--project[data-zone-pos="left"][data-zone-state="leaving"] .zone-inner,
-  .zone--project[data-zone-pos="right"][data-zone-state="leaving"] .zone-inner {
-    transform: translateY(-5px);
-  }
+  .proj-name { font-size: clamp(1.2rem, 5vw, 1.6rem); }
 
-  .zone--project[data-zone-state="active"] .zone-inner { transform: none; }
-
-  /* Right-zone evidence: restore left border on mobile */
-  .zone--project[data-zone-pos="right"] .zone-evidence {
-    padding-left: 1.2rem;
-    padding-right: 0;
-    border-left: 1px solid rgba(237,233,225,0.08);
-    border-right: none;
+  .proj-panel-inner {
+    padding-left: 3.5rem;
   }
 
   .zone--experiments { padding-left: 1.25rem; padding-right: 1.25rem; }

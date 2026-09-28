@@ -53,7 +53,7 @@
   <div class="threshold" id="threshold" aria-hidden="true">
     <div class="seam" id="seam">
       <div class="seam-line" id="seam-line"></div>
-      <p class="seam-label" id="seam-label" aria-hidden="true">scroll</p>
+      <p class="seam-label" id="seam-label" aria-hidden="true">scroll <span class="scroll-arrow">↓</span></p>
     </div>
   </div>
 
@@ -100,150 +100,117 @@
     </section>
 
     <!-- ============================================================
-         MAJOR PROJECT DESTINATIONS — fully data-driven
-         Position alternates based on deterministic spatial cycle.
-         Nothing about specific projects is hardcoded here.
+         PROJECTS — single stable zone containing all projects
+         All project interaction is self-contained within this zone.
+         No project hover/open state changes anything outside this section.
+         Data-driven from resume_data.json — nothing hardcoded here.
          ============================================================ -->
     {% if portfolio and portfolio.projects %}
-    <div class="projects-collection">
-
-      <!-- Projects Section Intro -->
-      <section class="zone zone--projects-intro"
-               id="zone-projects-intro"
-               data-zone="projects-intro"
-               data-zone-pos="center"
-               data-zone-label="projects">
-        <div class="zone-inner">
-          <div class="section-header">
-            <p class="section-title">projects</p>
-            <h2 class="section-subtitle">things I have built</h2>
-          </div>
-        </div>
-      </section>
-
-    {% for project in portfolio.projects %}
-
-    {#
-       6-position spatial cycle — deterministic, reproducible, non-alternating.
-       Pattern: left, right, center-left, far-right, offset-left, center-right
-       Works for any number of projects; cycles if there are more than 6.
-    #}
-    {% set _positions = ['pos-left', 'pos-right', 'pos-center-left', 'pos-far-right', 'pos-offset-left', 'pos-center-right'] %}
-    {% set _pos_dirs  = ['left',     'right',     'left',            'right',          'left',             'right'           ] %}
-    {% set _pi        = loop.index0 % (_positions|length) %}
-    {% set pos_class  = _positions[_pi] %}
-    {% set zone_pos   = _pos_dirs[_pi] %}
-
-    {# Layout variant: 2-cycle so statement-first and evidence-first alternate #}
-    {% set is_even = loop.index0 % 2 == 0 %}
-
-    {# Does this project have evidence-level detail? #}
-    {% set has_evidence = project.problem or project.architecture or project.key_decisions or project.results %}
-    {% set has_stack    = project.tech_stack and project.tech_stack|length > 0 %}
-    {% set has_github   = project.github %}
-    {% set has_demo     = project.demo or project.live_url %}
-
-    <section class="zone zone--project zone--{{ pos_class }}"
-             id="zone-project-{{ loop.index0 }}"
-             data-zone="project-{{ loop.index0 }}"
-             data-zone-pos="{{ zone_pos }}"
-             data-zone-label="{{ project.title }}">
-
+    <section class="zone zone--projects"
+             id="zone-projects"
+             data-zone="projects"
+             data-zone-pos="center"
+             data-zone-label="projects">
       <div class="zone-inner">
 
-        <!-- Header: index, name, sub-classification, optional badge -->
-        <header class="zone-header">
-          <span class="zone-index" aria-label="Destination {{ loop.index }}">{{ '%02d'|format(loop.index) }}</span>
-          <h2 class="zone-name">{{ project.title }}</h2>
-          {% if project.subtitle %}
-          <p class="zone-sub">{{ project.subtitle }}</p>
-          {% endif %}
-          {% if project.badge %}
-          <p class="zone-badge">{{ project.badge }}</p>
-          {% endif %}
-          {% if project.date %}
-          <p class="zone-date">{{ project.date }}</p>
-          {% endif %}
-        </header>
+        <div class="section-header">
+          <p class="section-title">projects</p>
+          <h2 class="section-subtitle">things I have built</h2>
+        </div>
 
-        {# Even projects: statement first, then evidence (vertical rhythm) #}
-        {# Odd projects: evidence first, then statement (horizontal feel) #}
-        {% if is_even %}
+        <div class="proj-list" id="proj-list">
+          {% for project in portfolio.projects %}
+          {% set has_evidence = project.problem or project.architecture or project.key_decisions or project.results %}
+          {% set has_stack    = project.tech_stack and project.tech_stack|length > 0 %}
+          {% set has_github   = project.github %}
+          {% set has_demo     = project.demo or project.live_url %}
 
-          {% if project.summary %}
-          <p class="zone-statement">{{ project.summary }}</p>
-          {% endif %}
+          <article class="proj-row"
+                   id="proj-row-{{ loop.index0 }}"
+                   data-proj-index="{{ loop.index0 }}"
+                   tabindex="0"
+                   role="button"
+                   aria-expanded="false"
+                   aria-label="Open {{ project.title }}">
 
-          {% if has_evidence %}
-          <div class="zone-evidence">
-            {% if project.problem %}
-            <div class="ev-row"><span class="ev-key">problem</span><span class="ev-val">{{ project.problem }}</span></div>
-            {% endif %}
-            {% if project.architecture %}
-            <div class="ev-row"><span class="ev-key">architecture</span><span class="ev-val">{{ project.architecture }}</span></div>
-            {% endif %}
-            {% if project.key_decisions %}
-            <div class="ev-row"><span class="ev-key">decision</span><span class="ev-val">{{ project.key_decisions }}</span></div>
-            {% endif %}
-            {% if project.results %}
-            <div class="ev-row"><span class="ev-key">result</span><span class="ev-val">{{ project.results }}</span></div>
-            {% endif %}
-          </div>
-          {% endif %}
+            <!-- Stable header — always visible -->
+            <header class="proj-header">
+              <span class="proj-num">{{ '%02d'|format(loop.index) }}</span>
+              <div class="proj-head-body">
+                <h3 class="proj-name">{{ project.title }}</h3>
+                {% if project.subtitle %}
+                <p class="proj-tagline">{{ project.subtitle }}</p>
+                {% endif %}
+              </div>
+              <span class="proj-cue" aria-hidden="true">→</span>
+            </header>
 
-        {% else %}
+            <!-- Detail panel — revealed in place, never changes doc height outside -->
+            <div class="proj-panel" aria-hidden="true">
+              <div class="proj-panel-inner">
+                <div class="proj-panel-body">
 
-          {% if has_evidence %}
-          <div class="zone-evidence zone-evidence--compact">
-            {% if project.problem %}
-            <div class="ev-row"><span class="ev-key">problem</span><span class="ev-val">{{ project.problem }}</span></div>
-            {% endif %}
-            {% if project.architecture %}
-            <div class="ev-row"><span class="ev-key">architecture</span><span class="ev-val">{{ project.architecture }}</span></div>
-            {% endif %}
-            {% if project.key_decisions %}
-            <div class="ev-row"><span class="ev-key">decision</span><span class="ev-val">{{ project.key_decisions }}</span></div>
-            {% endif %}
-            {% if project.results %}
-            <div class="ev-row"><span class="ev-key">result</span><span class="ev-val">{{ project.results }}</span></div>
-            {% endif %}
-          </div>
-          {% endif %}
+                  {% if project.badge or project.date %}
+                  <div class="proj-meta">
+                    {% if project.badge %}<span class="proj-badge">{{ project.badge }}</span>{% endif %}
+                    {% if project.date %}<span class="proj-date">{{ project.date }}</span>{% endif %}
+                  </div>
+                  {% endif %}
 
-          {% if project.summary %}
-          <p class="zone-statement">{{ project.summary }}</p>
-          {% endif %}
+                  {% if project.summary %}
+                  <p class="proj-summary">{{ project.summary }}</p>
+                  {% endif %}
 
-        {% endif %}
+                  {% if has_evidence %}
+                  <div class="proj-evidence">
+                    {% if project.problem %}
+                    <div class="pev-row"><span class="pev-key">problem</span><span class="pev-val">{{ project.problem }}</span></div>
+                    {% endif %}
+                    {% if project.architecture %}
+                    <div class="pev-row"><span class="pev-key">architecture</span><span class="pev-val">{{ project.architecture }}</span></div>
+                    {% endif %}
+                    {% if project.key_decisions %}
+                    <div class="pev-row"><span class="pev-key">decision</span><span class="pev-val">{{ project.key_decisions }}</span></div>
+                    {% endif %}
+                    {% if project.results %}
+                    <div class="pev-row"><span class="pev-key">result</span><span class="pev-val">{{ project.results }}</span></div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
 
-        <!-- Technology stack — only rendered if it exists -->
-        {% if has_stack %}
-        <div class="zone-stack" aria-label="Technologies">
-          {% for tech in project.tech_stack %}
-          <span class="stack-atom">{{ tech }}</span>{% if not loop.last %}<span class="stack-sep" aria-hidden="true">/</span>{% endif %}
+                  {% if has_stack %}
+                  <div class="proj-stack">
+                    {% for tech in project.tech_stack %}
+                    <span class="proj-stack-atom">{{ tech }}</span>{% if not loop.last %}<span class="proj-stack-sep" aria-hidden="true">/</span>{% endif %}
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+
+                  {% if has_github or has_demo %}
+                  <div class="proj-actions">
+                    {% if has_demo %}
+                    <a href="{{ project.demo or project.live_url }}" target="_blank" rel="noopener noreferrer" class="proj-try">TRY IT →</a>
+                    {% endif %}
+                    {% if has_github %}
+                    <a href="{{ project.github }}" target="_blank" rel="noopener noreferrer" class="proj-src">SOURCE →</a>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+
+                </div>
+              </div>
+            </div>
+
+          </article>
           {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Actions — only rendered for present links -->
-        {% if has_github or has_demo %}
-        <div class="zone-actions">
-          {% if has_github %}
-          <a href="{{ project.github }}" target="_blank" rel="noopener noreferrer" class="zone-action">source →</a>
-          {% endif %}
-          {% if has_demo %}
-          <a href="{{ project.demo or project.live_url }}" target="_blank" rel="noopener noreferrer" class="zone-action">try it →</a>
-          {% endif %}
-        </div>
-        {% endif %}
+        </div><!-- /proj-list -->
 
       </div>
     </section>
-
-    {% endfor %}
-    </div> <!-- /projects-collection -->
     {% endif %}
-    <!-- /major projects -->
+    <!-- /projects -->
+
+    <div class="zone-transition" aria-hidden="true"></div>
 
     <!-- ============================================================
          EXPERIMENTS — live side work (data-driven from live_projects)
@@ -285,6 +252,8 @@
     </section>
     {% endif %}
     <!-- /experiments -->
+
+    <div class="zone-transition" aria-hidden="true"></div>
 
     <!-- ============================================================
          TRACES — evidence of the journey (data-driven)
@@ -376,6 +345,8 @@
     </section>
     {% endif %}
     <!-- /traces -->
+
+    <div class="zone-transition" aria-hidden="true"></div>
 
     <!-- ============================================================
          CONTACT — the edge of the world

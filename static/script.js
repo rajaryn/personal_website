@@ -66,6 +66,7 @@
 
   function init() {
     initCursorParallax();
+    initProjectRows();
 
     if (prefersReducedMotion()) {
       initReducedMotion();
@@ -82,19 +83,117 @@
     if (contactForm) contactForm.addEventListener('submit', handleContactSubmit);
   }
 
+  /* ============================================================
+     PROJECT ROW CONTROLLER
+     One project open at a time.
+     Panel expands via CSS (aria-expanded); no layout shift outside.
+     ============================================================ */
+
+  function initProjectRows() {
+    const rows = document.querySelectorAll('.proj-row');
+    if (!rows.length) return;
+
+    function openRow(row) {
+      rows.forEach(r => {
+        if (r !== row) {
+          r.setAttribute('aria-expanded', 'false');
+          const p = r.querySelector('.proj-panel');
+          if (p) p.setAttribute('aria-hidden', 'true');
+        }
+      });
+      const isOpen = row.getAttribute('aria-expanded') === 'true';
+      row.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+      const panel = row.querySelector('.proj-panel');
+      if (panel) panel.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+    }
+
+    rows.forEach(row => {
+      row.addEventListener('click', () => openRow(row));
+      row.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openRow(row);
+        }
+      });
+    });
+  }
+
   function initCursorParallax() {
-    if (!window.matchMedia('(pointer: fine)').matches) return;
+    const setPan = (x, y) => {
+      document.documentElement.style.setProperty('--cursor-pan-x', x.toFixed(4));
+      document.documentElement.style.setProperty('--cursor-pan-y', y.toFixed(4));
+    };
 
-    document.addEventListener('pointermove', (event) => {
-      const cx = event.clientX;
-      const cy = event.clientY;
-      const w = window.innerWidth;
-      const h = window.innerHeight;
+    /* ── Desktop: pointermove ──────────────────────────────── */
+    if (window.matchMedia('(pointer: fine)').matches) {
+      document.addEventListener('pointermove', (e) => {
+        setPan(e.clientX / window.innerWidth - 0.5,
+               e.clientY / window.innerHeight - 0.5);
+      }, { passive: true });
+      return;
+    }
 
-      // Values from -0.5 to 0.5 — used to displace background geometry layers
-      document.documentElement.style.setProperty('--cursor-pan-x', (cx / w - 0.5).toFixed(4));
-      document.documentElement.style.setProperty('--cursor-pan-y', (cy / h - 0.5).toFixed(4));
+    /* ── Mobile: touchmove ─────────────────────────────────── */
+    /* Finger position relative to viewport center drives pan. */
+    document.addEventListener('touchmove', (e) => {
+      if (!e.touches.length) return;
+      const t = e.touches[0];
+      setPan(t.clientX / window.innerWidth - 0.5,
+             t.clientY / window.innerHeight - 0.5);
     }, { passive: true });
+
+    /* Reset when finger lifts */
+    document.addEventListener('touchend', () => {
+      /* Smoothly drift back to center */
+      let cx = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--cursor-pan-x') || 0
+      );
+      let cy = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--cursor-pan-y') || 0
+      );
+      const decay = () => {
+        cx *= 0.88;
+        cy *= 0.88;
+        setPan(cx, cy);
+        if (Math.abs(cx) > 0.002 || Math.abs(cy) > 0.002) {
+          requestAnimationFrame(decay);
+        } else {
+          setPan(0, 0);
+        }
+      };
+      requestAnimationFrame(decay);
+    }, { passive: true });
+
+    /* ── Mobile: deviceorientation (gyroscope) ─────────────── */
+    /* Tilt of the phone maps to pan. Only activates if API available. */
+    let gyroEnabled = false;
+
+    const tryGyro = () => {
+      window.addEventListener('deviceorientation', (e) => {
+        if (e.gamma === null || e.beta === null) return;
+        gyroEnabled = true;
+        /* gamma: left-right tilt (-90 to 90) → pan x */
+        /* beta:  front-back tilt (0 to 180)  → pan y (offset from ~45° neutral) */
+        const panX = Math.max(-0.5, Math.min(0.5, e.gamma / 40));
+        const panY = Math.max(-0.5, Math.min(0.5, (e.beta - 45) / 40));
+        setPan(panX, panY);
+      }, { passive: true });
+    };
+
+    /* iOS 13+ requires permission for deviceorientation */
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      /* Wait for a user gesture, then silently request permission */
+      const requestOnce = () => {
+        DeviceOrientationEvent.requestPermission().then(state => {
+          if (state === 'granted') tryGyro();
+        }).catch(() => {});
+        document.removeEventListener('touchstart', requestOnce);
+      };
+      document.addEventListener('touchstart', requestOnce, { once: true, passive: true });
+    } else {
+      tryGyro();
+    }
   }
 
   function injectPanels() {
