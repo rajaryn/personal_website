@@ -300,7 +300,7 @@ body[data-state="inside"] .threshold {
   left: 0; right: 0;
   background-color: var(--c-void);
   will-change: transform;
-  z-index: 0;
+  z-index: 4; /* Above portal-layer--far(1)/mid(2)/near(3) */
 }
 .panel-top    { top: 0;    height: 50%; }
 .panel-bottom { bottom: 0; height: 50%; }
@@ -308,7 +308,7 @@ body[data-state="inside"] .threshold {
 /* Seam */
 .seam {
   position: relative;
-  z-index: 1;
+  z-index: 5; /* Above panels */
   width: min(440px, 82vw);
   display: flex;
   flex-direction: column;
@@ -385,6 +385,87 @@ body[data-state="opening"] .seam-label,
 body[data-state="crossing"] .seam-label { opacity: 0; }
 
 body[data-state="inside"] .seam { opacity: 0; transition: opacity 0.5s ease; }
+
+/* ============================================================
+   PORTAL PARALLAX LAYERS
+   Three depth planes inside .threshold, each translated by JS
+   at a different rate based on scroll progress.
+   z-index ordering: far(1) → mid(2) → near(3) → panels(4) → seam(5)
+   All transforms use --portal-p-far/mid/near set per frame.
+   ============================================================ */
+
+.portal-layer {
+  position: absolute;
+  inset: -30%; /* Overshoot so edges never show during translation */
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* FAR — slow background geometry: a large sparse grid */
+.portal-layer--far {
+  z-index: 1;
+  background-image:
+    linear-gradient(rgba(237,233,225,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(237,233,225,0.022) 1px, transparent 1px);
+  background-size: 120px 120px;
+  background-position: center center;
+  transform: translateY(var(--portal-p-far, 0px));
+  opacity: 0.6;
+}
+
+/* MID — contour lines: angled, denser, slightly warmer */
+.portal-layer--mid {
+  z-index: 2;
+  background-image:
+    linear-gradient(rgba(237,233,225,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(237,233,225,0.015) 1px, transparent 1px),
+    linear-gradient(45deg, rgba(184,155,107,0.012) 1px, transparent 1px);
+  background-size: 72px 72px, 72px 72px, 200px 200px;
+  background-position: 36px 36px, 36px 36px, 0 0;
+  transform: translateY(var(--portal-p-mid, 0px));
+  opacity: 0.5;
+}
+
+/* NEAR — foreground geometry: sparse large radial rings suggesting depth */
+.portal-layer--near {
+  z-index: 3;
+  /* Subtle concentric-ring effect using radial gradients */
+  background-image:
+    radial-gradient(
+      ellipse 90% 60% at 50% 50%,
+      transparent 35%,
+      rgba(237,233,225,0.018) 36%,
+      transparent 37%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 50% 50%,
+      transparent 48%,
+      rgba(184,155,107,0.022) 49%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 30% 20% at 50% 50%,
+      transparent 62%,
+      rgba(237,233,225,0.014) 63%,
+      transparent 64%
+    );
+  background-size: 100% 100%;
+  transform: translateY(var(--portal-p-near, 0px));
+  opacity: 0.8;
+}
+
+/* Fade the layers out as crossing completes */
+body[data-state="inside"] .portal-layer {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+/* ME zone: gentle entrance counter-scroll after crossing */
+/* Driven by --portal-scroll-me set by JS */
+.zone--me .zone-inner {
+  --me-enter: var(--portal-scroll-me, 0px);
+}
+
 
 /* ============================================================
    THE WORLD
@@ -638,7 +719,7 @@ body[data-state="inside"] .world { pointer-events: auto; }
 }
 
 .zone--me[data-zone-state="active"] .zone-inner {
-  transform: translateY(0) scale(1);
+  transform: translateY(var(--portal-scroll-me, 0px)) scale(1);
 }
 
 /* ============================================================

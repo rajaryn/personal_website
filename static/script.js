@@ -67,6 +67,7 @@
   function init() {
     initCursorParallax();
     initProjectRows();
+    initPortalParallax();
 
     if (prefersReducedMotion()) {
       initReducedMotion();
@@ -196,6 +197,68 @@
     }
   }
 
+  /* ============================================================
+     PORTAL PARALLAX
+     Drives three depth layers inside .threshold at different rates.
+     Reads the same scroll progress as the panel animation.
+     Sets CSS vars on :root — CSS reads them via transform: translateY(var(...))
+     No layout reads inside the hot path.
+     ============================================================ */
+
+  function initPortalParallax() {
+    if (prefersReducedMotion()) return;
+
+    /* Depth multipliers (as fraction of vh):
+       far  = slowest  → feels most distant
+       mid  = medium
+       near = fastest  → feels closest / rushes past viewer */
+    const SPEED_FAR  = 0.08;
+    const SPEED_MID  = 0.20;
+    const SPEED_NEAR = 0.38;
+
+    /* Mobile gets reduced movement */
+    const isMobile = () => window.innerWidth < 768;
+
+    const root = document.documentElement;
+
+    /* Cache vh — update on resize */
+    let vh = window.innerHeight;
+    const onResize = () => { vh = window.innerHeight; };
+    window.addEventListener('resize', onResize, { passive: true });
+
+    /* This is called from onScroll's rAF — no second rAF needed */
+    window._updatePortalParallax = (progress, y) => {
+      const mul = isMobile() ? 0.55 : 1;
+
+      if (progress < 1) {
+        /* During portal crossing: layers move upward as panels open */
+        const easedP  = easeOutCubic(progress);
+        const farPx   = -(easedP * vh * SPEED_FAR  * mul).toFixed(2);
+        const midPx   = -(easedP * vh * SPEED_MID  * mul).toFixed(2);
+        const nearPx  = -(easedP * vh * SPEED_NEAR * mul).toFixed(2);
+
+        root.style.setProperty('--portal-p-far',  `${farPx}px`);
+        root.style.setProperty('--portal-p-mid',  `${midPx}px`);
+        root.style.setProperty('--portal-p-near', `${nearPx}px`);
+
+        /* Reset ME counter-scroll during crossing */
+        root.style.setProperty('--portal-scroll-me', '0px');
+
+      } else {
+        /* After crossing: keep layers at final position (panels are gone) */
+        /* Drive a gentle ME entrance counter-scroll so it eases in */
+        const meZone = document.getElementById('zone-me');
+        if (meZone) {
+          const rect = meZone.getBoundingClientRect();
+          /* How far ME has scrolled past its top entering viewport */
+          const entryRaw = Math.max(0, (vh - rect.top) / vh);
+          const meOffset = -(Math.min(1, entryRaw) * vh * 0.04 * mul).toFixed(2);
+          root.style.setProperty('--portal-scroll-me', `${meOffset}px`);
+        }
+      }
+    };
+  }
+
   function injectPanels() {
     if (!threshold) return;
 
@@ -236,6 +299,9 @@
       
       const endPx = CROSS_END_VH * vh;
       const progress = Math.max(0, Math.min(1, y / endPx));
+
+      /* Portal parallax — runs every frame alongside panels */
+      if (window._updatePortalParallax) window._updatePortalParallax(progress, y);
 
       if (progress < 1) {
         if (crossingComplete) {
