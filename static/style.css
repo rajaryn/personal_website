@@ -273,8 +273,7 @@ body[data-active-zone-pos="center"] .env-layer {
 }
 
 /* ============================================================
-   THRESHOLD — fixed full-viewport overlay
-   Panel divs (.panel-top, .panel-bottom) injected by JS.
+   PARALLAX PASSAGE — fixed full-viewport environment
    ============================================================ */
 
 .threshold {
@@ -285,68 +284,74 @@ body[data-active-zone-pos="center"] .env-layer {
   display: flex;
   align-items: center;
   justify-content: center;
+  visibility: visible;
 }
 
-/* Ensure the portal cannot obscure the world after crossing */
+/* Ambient light gives the moving depth layers a destination. */
+.threshold::before,
+.threshold::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.threshold::before {
+  z-index: 0;
+  inset: 0;
+  opacity: 1;
+  transition: opacity 0.45s ease;
+  background:
+    linear-gradient(135deg, rgba(184, 155, 107, 0.035), transparent 36%),
+    linear-gradient(315deg, rgba(237, 233, 225, 0.025), transparent 42%),
+    linear-gradient(180deg, #101012 0%, #0b0a0c 58%, #09080a 100%);
+}
+
+.threshold::after {
+  z-index: 5;
+  inset: 0;
+  opacity: 0.78;
+  background:
+    linear-gradient(180deg, rgba(9, 8, 10, 0.12) 0%, transparent 28%, rgba(9, 8, 10, 0.62) 100%),
+    linear-gradient(90deg, rgba(9, 8, 10, 0.32), transparent 22%, transparent 78%, rgba(9, 8, 10, 0.32));
+  transition: opacity 0.5s ease;
+}
+
+body[data-state="inside"] .threshold::before,
+body[data-state="inside"] .threshold::after {
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+/* Keep the portal mounted so reverse scrolling can fade it back in on the
+   same composited layers instead of revealing a newly visible overlay. */
 body[data-state="inside"] .threshold {
   pointer-events: none !important;
-  visibility: hidden;
-  transition: visibility 0s 0.8s;
+  visibility: visible;
 }
 
-.panel-top,
-.panel-bottom {
+/* Entry cue */
+.entry-cue {
   position: absolute;
-  left: 0; right: 0;
-  background-color: var(--c-void);
-  will-change: transform;
-  z-index: 4; /* Above portal-layer--far(1)/mid(2)/near(3) */
-}
-.panel-top    { top: 0;    height: 50%; }
-.panel-bottom { bottom: 0; height: 50%; }
-
-/* Seam */
-.seam {
-  position: relative;
-  z-index: 5; /* Above panels */
-  width: min(440px, 82vw);
+  z-index: 6;
+  left: 50%;
+  bottom: max(2.5rem, 10vh);
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.1rem;
+  opacity: 1;
+  transition: opacity 0.5s ease;
 }
 
-.seam-line {
-  width: 100%;
-  height: 1px;
-  background-color: #2a2826;
-  position: relative;
-  transition: background-color 0.5s ease, box-shadow 0.5s ease;
-}
-
-.seam-line::before,
-.seam-line::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background-color: #2a2826;
-  transition: background-color 0.4s ease;
-}
-.seam-line::before { left: 0; }
-.seam-line::after  { right: 0; }
-
-.seam-label {
+.entry-cue__label {
   font-family: var(--f-mono);
-  font-size: 0.8rem;
+  font-size: 0.68rem;
   font-weight: 400;
-  color: var(--c-muted);
-  letter-spacing: 0.28em;
+  color: rgba(237,233,225,0.54);
+  letter-spacing: 0.2em;
   user-select: none;
   transition: color 0.4s ease, opacity 0.4s ease;
+  text-transform: lowercase;
 }
 
 .scroll-arrow {
@@ -367,91 +372,74 @@ body[data-state="inside"] .threshold {
   }
 }
 
-body[data-state="approaching"] .seam-line { background-color: rgba(184,155,107,0.45); }
-body[data-state="approaching"] .seam-line::before,
-body[data-state="approaching"] .seam-line::after { background-color: var(--c-accent); }
-body[data-state="approaching"] .seam-label { color: var(--c-accent); }
+body[data-state="approaching"] .entry-cue__label { color: var(--c-accent); }
 
-body[data-state="opening"] .seam-line,
-body[data-state="crossing"] .seam-line {
-  background-color: var(--c-accent);
-  box-shadow: 0 0 18px rgba(184,155,107,0.25);
-}
-body[data-state="opening"] .seam-line::before,
-body[data-state="opening"] .seam-line::after,
-body[data-state="crossing"] .seam-line::before,
-body[data-state="crossing"] .seam-line::after { background-color: var(--c-accent); }
-body[data-state="opening"] .seam-label,
-body[data-state="crossing"] .seam-label { opacity: 0; }
+body[data-state="opening"] .entry-cue__label,
+body[data-state="crossing"] .entry-cue__label { opacity: 0; }
 
-body[data-state="inside"] .seam { opacity: 0; transition: opacity 0.5s ease; }
+body[data-state="inside"] .entry-cue { opacity: 0; transition: opacity 0.5s ease; }
 
 /* ============================================================
    PORTAL PARALLAX LAYERS
-   Three depth planes inside .threshold, each translated by JS
-   at a different rate based on scroll progress.
-   z-index ordering: far(1) → mid(2) → near(3) → panels(4) → seam(5)
-   All transforms use --portal-p-far/mid/near set per frame.
+   Abstract CSS light and haze layers follow independent scrub distances.
    ============================================================ */
 
 .portal-layer {
   position: absolute;
-  inset: -30%; /* Overshoot so edges never show during translation */
+  inset: -24% -16%; /* Overshoot keeps the moving layers beyond the edges. */
   pointer-events: none;
   will-change: transform;
+  transform: translate3d(0, var(--parallax-y, 0%), 0);
+  opacity: 0.9;
+  transition: opacity 0.6s ease;
 }
 
-/* FAR — slow background geometry: a large sparse grid */
+/* Distant, soft illumination. */
 .portal-layer--far {
   z-index: 1;
-  background-image:
-    linear-gradient(rgba(237,233,225,0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(237,233,225,0.022) 1px, transparent 1px);
-  background-size: 120px 120px;
-  background-position: center center;
-  transform: translateY(var(--portal-p-far, 0px));
-  opacity: 0.6;
+  background:
+    linear-gradient(112deg, transparent 8%, rgba(66, 85, 108, 0.22) 33%, transparent 55%),
+    linear-gradient(68deg, transparent 26%, rgba(184, 155, 107, 0.1) 51%, transparent 75%);
+  filter: blur(32px);
+  opacity: 0.58;
 }
 
-/* MID — contour lines: angled, denser, slightly warmer */
+/* Fine haze passes through the middle distance. */
 .portal-layer--mid {
   z-index: 2;
-  background-image:
-    linear-gradient(rgba(237,233,225,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(237,233,225,0.015) 1px, transparent 1px),
-    linear-gradient(45deg, rgba(184,155,107,0.012) 1px, transparent 1px);
-  background-size: 72px 72px, 72px 72px, 200px 200px;
-  background-position: 36px 36px, 36px 36px, 0 0;
-  transform: translateY(var(--portal-p-mid, 0px));
-  opacity: 0.5;
+  background:
+    repeating-linear-gradient(102deg, transparent 0 12%, rgba(237, 233, 225, 0.045) 14%, transparent 18% 30%),
+    linear-gradient(90deg, transparent 16%, rgba(184, 155, 107, 0.11) 50%, transparent 84%);
+  filter: blur(12px);
+  opacity: 0.56;
 }
 
-/* NEAR — foreground geometry: sparse large radial rings suggesting depth */
+/* A quiet foreground wash, close enough to feel motion. */
 .portal-layer--near {
+  z-index: 4;
+  background:
+    linear-gradient(108deg, transparent 12%, rgba(237, 233, 225, 0.075) 42%, transparent 61%),
+    linear-gradient(72deg, transparent 31%, rgba(184, 155, 107, 0.08) 48%, transparent 67%);
+  filter: blur(6px);
+  opacity: 0.7;
+}
+
+.portal-layer--title {
   z-index: 3;
-  /* Subtle concentric-ring effect using radial gradients */
-  background-image:
-    radial-gradient(
-      ellipse 90% 60% at 50% 50%,
-      transparent 35%,
-      rgba(237,233,225,0.018) 36%,
-      transparent 37%
-    ),
-    radial-gradient(
-      ellipse 60% 40% at 50% 50%,
-      transparent 48%,
-      rgba(184,155,107,0.022) 49%,
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse 30% 20% at 50% 50%,
-      transparent 62%,
-      rgba(237,233,225,0.014) 63%,
-      transparent 64%
-    );
-  background-size: 100% 100%;
-  transform: translateY(var(--portal-p-near, 0px));
-  opacity: 0.8;
+  display: grid;
+  place-items: start center;
+  padding-top: 14vh;
+  opacity: var(--passage-title-opacity, 0);
+}
+
+.portal-layer__title {
+  color: rgba(237, 233, 225, 0.94);
+  font-family: var(--f-serif);
+  font-size: clamp(2.6rem, 9vw, 7rem);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  text-shadow: 0 3px 40px rgba(9, 8, 10, 0.8);
 }
 
 /* Fade the layers out as crossing completes */
@@ -460,17 +448,24 @@ body[data-state="inside"] .portal-layer {
   transition: opacity 0.6s ease;
 }
 
-/* ME zone: gentle entrance counter-scroll after crossing */
-/* Driven by --portal-scroll-me set by JS */
+/* The first portfolio copy is deliberately held until the passage ends. */
 .zone--me .zone-inner {
-  --me-enter: var(--portal-scroll-me, 0px);
+  opacity: var(--me-copy-reveal, 1);
+  transition: transform 0.95s var(--ease-out), opacity 90ms linear;
+}
+
+/* The landing scroll and the entrance transform must not compete. Once the
+   first view is placed, keep its content physically still while the copy
+   finishes its intentional opacity reveal. */
+body[data-entry-landed="true"] .zone--me .zone-inner {
+  transform: translate3d(0, 0, 0) scale(1);
+  transition: opacity 180ms ease-out;
 }
 
 
 /* ============================================================
    THE WORLD
-   Starts at document top. Always visible (no initial opacity:0).
-   Fixed panels cover it. As panels retract, real world is revealed.
+   The opening content approaches as the layered passage fades away.
    ============================================================ */
 
 .world {
@@ -622,16 +617,15 @@ body[data-state="inside"] .world { pointer-events: auto; }
 /* ============================================================
    ZONE: ME
    The first destination.
-   margin-top ensures this destination physically exists AFTER 
-   the portal scroll distance. It will not be visible during
-   the crossing, and will naturally approach as the user scrolls
-   past 45vh.
+   The first destination reaches the viewport as the entry passage ends.
    ============================================================ */
 
 .zone--me {
   max-width: 800px;
   margin: 0 auto;
-  margin-top: 140vh; 
+  /* Keep the introduction below the passage until it has fully cleared. */
+  margin-top: 78vh;
+  min-height: 100vh;
   padding: 0 2rem 15vh;
 }
 
@@ -719,7 +713,7 @@ body[data-state="inside"] .world { pointer-events: auto; }
 }
 
 .zone--me[data-zone-state="active"] .zone-inner {
-  transform: translateY(var(--portal-scroll-me, 0px)) scale(1);
+  transform: translateY(0) scale(1);
 }
 
 /* ============================================================
@@ -746,6 +740,9 @@ body[data-state="inside"] .world { pointer-events: auto; }
 .zone[data-zone-state="active"]      { opacity: 1 !important; }
 .zone[data-zone-state="leaving"]     { opacity: 0.45; }
 .zone[data-zone-state="past"]        { opacity: 0.12; }
+
+/* Keep the introduction legible throughout its full scroll-through. */
+body[data-state="inside"] .zone--me { opacity: 1 !important; }
 
 /* ============================================================
    ZONE POSITION VARIANTS — 6 spatial positions
@@ -1511,6 +1508,7 @@ body[data-state="inside"] .world { pointer-events: auto; }
   .threshold, .env-layer { display: none; }
   .mark, .resume-thread  { opacity: 1 !important; }
   .world { pointer-events: auto !important; }
+  body[data-state="inside"] .zone--me { margin-top: 0; }
 
   .zone,
   .zone-inner,
@@ -1536,6 +1534,8 @@ body[data-state="inside"] .world { pointer-events: auto; }
 }
 
 @media (max-width: 768px) {
+  .zone--me { margin-top: 96vh; }
+
   /* All position variants collapse to full-width on mobile */
   .zone--pos-left,
   .zone--pos-right,
@@ -1573,7 +1573,6 @@ body[data-state="inside"] .world { pointer-events: auto; }
 
   .mark          { left: 1rem; top: 1rem; }
   .resume-thread { right: 1rem; top: 1rem; }
-  .seam          { width: min(300px, 88vw); }
   .zone--me          { padding-left: 1.25rem; padding-right: 1.25rem; }
 }
 

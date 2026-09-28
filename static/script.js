@@ -8,10 +8,9 @@
  * Systems:
  *
  *  1. PORTAL CROSSING
- *     Raw scrollY drives panel animation.
- *     No crossing-zone spacer. World starts at document top.
- *     The real world is visible through the opening seam.
- *     Crossing completes at CROSS_END_VH (55% of viewport height).
+ *     Scroll progress drives a layered parallax passage.
+ *     The scene scales and moves at different rates to suggest depth.
+ *     Crossing completes across a short, phone-friendly scroll distance.
  *     States: outside → approaching → opening → crossing → inside.
  *     Reversible: scrolling back re-crosses in reverse.
  *
@@ -37,7 +36,8 @@
      CONFIGURATION
      ============================================================ */
 
-  const CROSS_END_VH = 0.45;  // crossing completes quicker
+  const CROSS_END_VH_DESKTOP = 0.45;
+  const CROSS_END_VH_MOBILE = 0.68;
 
   /* ============================================================
      ELEMENT REFERENCES
@@ -45,7 +45,7 @@
 
   const body       = document.body;
   const threshold  = document.getElementById('threshold');
-  const worldEl    = document.getElementById('world');
+  const meZone     = document.getElementById('zone-me');
   const markPlace  = document.getElementById('mark-place');
   const returnBtn  = document.getElementById('return-btn');
   const contactForm = document.getElementById('contact-form');
@@ -54,17 +54,31 @@
 
   const zones = Array.from(document.querySelectorAll('[data-zone]'));
 
-  let panelTop    = null;
-  let panelBottom = null;
   let crossingComplete = false;
+  let portalWasCrossing = false;
   let lastState = '';
   let rafPending = false;
+  let portalViewportHeight = window.innerHeight;
+  let portalViewportWidth = window.innerWidth;
+  let hasLandedAtIntroduction = false;
+  let introductionLandingY = null;
+  let introductionLockUntil = 0;
 
   /* ============================================================
      INIT
      ============================================================ */
 
   function init() {
+    window.addEventListener('resize', () => {
+      const width = window.innerWidth;
+      // Mobile browser chrome can change innerHeight while scrolling. Keep the
+      // crossing distance stable until the device is actually rotated/resized.
+      if (width !== portalViewportWidth || !window.matchMedia('(max-width: 768px)').matches) {
+        portalViewportHeight = window.innerHeight;
+        portalViewportWidth = width;
+      }
+    }, { passive: true });
+
     initCursorParallax();
     initProjectRows();
     initPortalParallax();
@@ -74,7 +88,6 @@
       return;
     }
 
-    injectPanels();
     setBodyState('outside');
 
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -199,87 +212,60 @@
 
   /* ============================================================
      PORTAL PARALLAX
-     Drives three depth layers inside .threshold at different rates.
-     Reads the same scroll progress as the panel animation.
-     Sets CSS vars on :root — CSS reads them via transform: translateY(var(...))
+     Drives four CSS/title layers inside .threshold at different rates.
+     Reads the same scroll progress as the entry animation.
+     Sets per-layer CSS vars consumed by composited transforms.
      No layout reads inside the hot path.
      ============================================================ */
 
   function initPortalParallax() {
     if (prefersReducedMotion()) return;
-
-    /* Depth multipliers (as fraction of vh):
-       far  = slowest  → feels most distant
-       mid  = medium
-       near = fastest  → feels closest / rushes past viewer */
-    const SPEED_FAR  = 0.08;
-    const SPEED_MID  = 0.20;
-    const SPEED_NEAR = 0.38;
-
-    /* Mobile gets reduced movement */
-    const isMobile = () => window.innerWidth < 768;
-
-    const root = document.documentElement;
-
-    /* Cache vh — update on resize */
-    let vh = window.innerHeight;
-    const onResize = () => { vh = window.innerHeight; };
-    window.addEventListener('resize', onResize, { passive: true });
-
-    /* This is called from onScroll's rAF — no second rAF needed */
-    window._updatePortalParallax = (progress, y) => {
-      const mul = isMobile() ? 0.55 : 1;
-
-      if (progress < 1) {
-        /* During portal crossing: layers move upward as panels open */
-        const easedP  = easeOutCubic(progress);
-        const farPx   = -(easedP * vh * SPEED_FAR  * mul).toFixed(2);
-        const midPx   = -(easedP * vh * SPEED_MID  * mul).toFixed(2);
-        const nearPx  = -(easedP * vh * SPEED_NEAR * mul).toFixed(2);
-
-        root.style.setProperty('--portal-p-far',  `${farPx}px`);
-        root.style.setProperty('--portal-p-mid',  `${midPx}px`);
-        root.style.setProperty('--portal-p-near', `${nearPx}px`);
-
-        /* Reset ME counter-scroll during crossing */
-        root.style.setProperty('--portal-scroll-me', '0px');
-
-      } else {
-        /* After crossing: keep layers at final position (panels are gone) */
-        /* Drive a gentle ME entrance counter-scroll so it eases in */
-        const meZone = document.getElementById('zone-me');
-        if (meZone) {
-          const rect = meZone.getBoundingClientRect();
-          /* How far ME has scrolled past its top entering viewport */
-          const entryRaw = Math.max(0, (vh - rect.top) / vh);
-          const meOffset = -(Math.min(1, entryRaw) * vh * 0.04 * mul).toFixed(2);
-          root.style.setProperty('--portal-scroll-me', `${meOffset}px`);
-        }
-      }
-    };
-  }
-
-  function injectPanels() {
     if (!threshold) return;
 
-    function makePanel(cls, posStyles) {
-      const el = document.createElement('div');
-      el.className = cls;
-      el.setAttribute('aria-hidden', 'true');
-      Object.assign(el.style, {
-        position: 'absolute',
-        left: '0', right: '0',
-        backgroundColor: 'var(--c-void)',
-        willChange: 'transform',
-        zIndex: '0',
-        ...posStyles
+    const layers = Array.from(threshold.querySelectorAll('[data-parallax-layer]'));
+    const passageTitle = threshold.querySelector('.portal-layer__title');
+    const clamp01 = value => Math.max(0, Math.min(1, value));
+    let targetProgress = 0;
+    let renderedProgress = 0;
+    let animationFrame = 0;
+
+    // Match the reference component's four independent scrub distances.
+    const layerTravel = { '1': 70, '2': 55, '3': 40, '4': 10 };
+
+    const render = () => {
+      const delta = targetProgress - renderedProgress;
+      renderedProgress += delta * 0.16;
+
+      if (Math.abs(delta) < 0.001) renderedProgress = targetProgress;
+      const p = renderedProgress;
+
+      layers.forEach(layer => {
+        const distance = layerTravel[layer.dataset.parallaxLayer] || 0;
+        layer.style.setProperty('--parallax-y', `${(p * distance).toFixed(2)}%`);
       });
-      return el;
-    }
-    panelTop    = makePanel('panel-top',    { top: '0',    height: '50%' });
-    panelBottom = makePanel('panel-bottom', { bottom: '0', height: '50%' });
-    threshold.appendChild(panelTop);
-    threshold.appendChild(panelBottom);
+
+      // Hold the portfolio copy back until the visitor is nearly through.
+      const copyProgress = clamp01((p - 0.8) / 0.2);
+      const copyReveal = easeInOutCubic(copyProgress);
+      if (meZone) meZone.style.setProperty('--me-copy-reveal', copyReveal.toFixed(4));
+
+      if (passageTitle) {
+        const fadeIn = easeInOutCubic(clamp01((p - 0.56) / 0.16));
+        const fadeOut = easeInOutCubic(clamp01((0.98 - p) / 0.14));
+        passageTitle.style.setProperty('--passage-title-opacity', (fadeIn * fadeOut).toFixed(4));
+      }
+
+      if (renderedProgress !== targetProgress) {
+        animationFrame = requestAnimationFrame(render);
+      } else {
+        animationFrame = 0;
+      }
+    };
+
+    window._updatePortalParallax = progress => {
+      targetProgress = clamp01(progress);
+      if (!animationFrame) animationFrame = requestAnimationFrame(render);
+    };
   }
 
   /* ============================================================
@@ -292,46 +278,77 @@
     rafPending = true;
     requestAnimationFrame(() => {
       rafPending = false;
-      const vh = window.innerHeight;
+      const vh = portalViewportHeight;
       const y  = window.scrollY;
       
       document.documentElement.style.setProperty('--scroll-y', `${y}px`);
       
-      const endPx = CROSS_END_VH * vh;
+      const mobile = window.matchMedia('(max-width: 768px)').matches;
+      const endPx = (mobile ? CROSS_END_VH_MOBILE : CROSS_END_VH_DESKTOP) * vh;
       const progress = Math.max(0, Math.min(1, y / endPx));
 
-      /* Portal parallax — runs every frame alongside panels */
-      if (window._updatePortalParallax) window._updatePortalParallax(progress, y);
+      /* The layered passage follows the same scroll progress as the entry. */
+      if (window._updatePortalParallax) window._updatePortalParallax(progress);
 
       if (progress < 1) {
+        hasLandedAtIntroduction = false;
+        introductionLandingY = null;
+        introductionLockUntil = 0;
+        body.removeAttribute('data-entry-landed');
         if (crossingComplete) {
           crossingComplete = false;
         }
-        handlePortalState(y, vh, progress);
-        updateZoneStates(true); // isCrossing = true
+        handlePortalState(y, vh);
+        // Zones are all distant while the portal is closed. Avoid measuring
+        // every section on every touch-scroll frame; refresh once on entry.
+        if (!portalWasCrossing) updateZoneStates(true);
+        portalWasCrossing = true;
       } else {
+        portalWasCrossing = false;
         if (!crossingComplete) {
           crossingComplete = true;
           setBodyState('inside');
-          setPanelProgress(1);
+          landOnIntroduction();
+        }
+
+        // Keep a fast touch fling from carrying the first view past the
+        // introduction while the landing correction is settling.
+        if (introductionLandingY !== null && performance.now() < introductionLockUntil) {
+          // The guard is only for downward fling overshoot. If the visitor
+          // starts scrolling up, release it immediately so the reverse
+          // handoff never gets pulled back toward the introduction.
+          if (y < introductionLandingY - 1) {
+            introductionLandingY = null;
+            introductionLockUntil = 0;
+            body.removeAttribute('data-entry-landed');
+          } else if (y > introductionLandingY + 1) {
+            window.scrollTo({ top: introductionLandingY, behavior: 'auto' });
+          }
         }
         updateZoneStates(false); // isCrossing = false
       }
     });
   }
 
-  function handlePortalState(y, vh, progress) {
+  function landOnIntroduction() {
+    if (!meZone || hasLandedAtIntroduction) return;
+
+    hasLandedAtIntroduction = true;
+    body.setAttribute('data-entry-landed', 'true');
+    const headerPosition = portalViewportHeight * 0.22;
+    introductionLandingY = Math.max(
+      0,
+      Math.round(window.scrollY + meZone.getBoundingClientRect().top - headerPosition)
+    );
+    introductionLockUntil = performance.now() + 420;
+    window.scrollTo({ top: introductionLandingY, behavior: 'auto' });
+  }
+
+  function handlePortalState(y, vh) {
     if (y < 0.05 * vh) setBodyState('outside');
     else if (y < 0.15 * vh) setBodyState('approaching');
     else if (y < 0.30 * vh) setBodyState('opening');
     else setBodyState('crossing');
-
-    setPanelProgress(easeOutCubic(progress));
-  }
-
-  function setPanelProgress(p) {
-    if (panelTop)    panelTop.style.transform    = `translateY(${-p * 100}%)`;
-    if (panelBottom) panelBottom.style.transform = `translateY(${p  * 100}%)`;
   }
 
   function returnToOutside() {
@@ -509,8 +526,9 @@
      UTILITIES
      ============================================================ */
 
-  function easeOutCubic(t) {
-    return 1 - Math.pow(1 - Math.max(0, Math.min(1, t)), 3);
+  function easeInOutCubic(t) {
+    const p = Math.max(0, Math.min(1, t));
+    return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
   }
 
   function prefersReducedMotion() {

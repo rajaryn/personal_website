@@ -41,33 +41,26 @@
        Driven by body[data-active-zone-pos]. -->
   <div class="env-layer" id="env-layer" aria-hidden="true"></div>
 
-  <!-- ============================================================
-       THE THRESHOLD
-       Fixed full-viewport overlay.
-       Two panel divs injected by JS (panel-top, panel-bottom).
-       JS drives their translateY directly from scrollY.
-       At scrollY = 0: panels fully closed.
-       At scrollY ≈ 0.55vh: panels fully off screen (crossing complete).
-       The ACTUAL WORLD is visible through the opening as panels retract.
-       ============================================================ -->
+  <!-- Scroll-driven parallax passage. The atmosphere and depth layers
+       dissolve as the first world section reaches the viewport. -->
   <div class="threshold" id="threshold" aria-hidden="true">
 
-    <!-- Parallax depth layers — scroll-driven, geometry only -->
-    <div class="portal-layer portal-layer--far"  id="portal-layer-far"  aria-hidden="true"></div>
-    <div class="portal-layer portal-layer--mid"  id="portal-layer-mid"  aria-hidden="true"></div>
-    <div class="portal-layer portal-layer--near" id="portal-layer-near" aria-hidden="true"></div>
+    <!-- CSS-only layers drift at different rates to create depth. -->
+    <div class="portal-layer portal-layer--far" data-parallax-layer="1" aria-hidden="true"></div>
+    <div class="portal-layer portal-layer--mid" data-parallax-layer="2" aria-hidden="true"></div>
+    <div class="portal-layer portal-layer--near" data-parallax-layer="4" aria-hidden="true"></div>
+    <div class="portal-layer portal-layer--title" data-parallax-layer="3" aria-hidden="true">
+      <p class="portal-layer__title">{{ portfolio.name if portfolio else 'Raj Aryan' }}</p>
+    </div>
 
-    <div class="seam" id="seam">
-      <div class="seam-line" id="seam-line"></div>
-      <p class="seam-label" id="seam-label" aria-hidden="true">scroll <span class="scroll-arrow">↓</span></p>
+    <div class="entry-cue" id="entry-cue">
+      <p class="entry-cue__label" aria-hidden="true">scroll to enter <span class="scroll-arrow">↓</span></p>
     </div>
   </div>
 
   <!-- ============================================================
        THE WORLD
-       Starts at document top — no crossing-zone spacer.
-       World scrolls normally. Panels (fixed) cover it until they retract.
-       As visitor scrolls, panels open and the REAL world is revealed.
+       The first destination comes into view beneath the fading passage.
 
        Content zones (driven entirely from resume_data.json):
          world-opening → projects → experiments → traces → contact
