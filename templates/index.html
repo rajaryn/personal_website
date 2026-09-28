@@ -23,13 +23,13 @@
   DATA:   all content from resume_data.json via Flask/Jinja.
           No project names, URLs, or content hardcoded in this template.
 -->
-<body data-state="outside">
+<body data-state="inside">
 
   <!-- Orientation mark — not a navbar. Updated by JS as visitor moves. -->
   <aside class="mark" id="mark" aria-label="Current location" aria-live="polite">
     <span class="mark-name">{{ portfolio.name if portfolio else 'Raj Aryan' }}</span>
     <span class="mark-sep" aria-hidden="true">/</span>
-    <span class="mark-place" id="mark-place">outside</span>
+    <span class="mark-place" id="mark-place">world</span>
   </aside>
 
   <!-- Résumé link — fixed top-right, minimal -->
@@ -40,23 +40,6 @@
        Shifts per active zone position (left/right/center).
        Driven by body[data-active-zone-pos]. -->
   <div class="env-layer" id="env-layer" aria-hidden="true"></div>
-
-  <!-- Scroll-driven parallax passage. The atmosphere and depth layers
-       dissolve as the first world section reaches the viewport. -->
-  <div class="threshold" id="threshold" aria-hidden="true">
-
-    <!-- CSS-only layers drift at different rates to create depth. -->
-    <div class="portal-layer portal-layer--far" data-parallax-layer="1" aria-hidden="true"></div>
-    <div class="portal-layer portal-layer--mid" data-parallax-layer="2" aria-hidden="true"></div>
-    <div class="portal-layer portal-layer--near" data-parallax-layer="4" aria-hidden="true"></div>
-    <div class="portal-layer portal-layer--title" data-parallax-layer="3" aria-hidden="true">
-      <p class="portal-layer__title">{{ portfolio.name if portfolio else 'Raj Aryan' }}</p>
-    </div>
-
-    <div class="entry-cue" id="entry-cue">
-      <p class="entry-cue__label" aria-hidden="true">scroll to enter <span class="scroll-arrow">↓</span></p>
-    </div>
-  </div>
 
   <!-- ============================================================
        THE WORLD
@@ -228,20 +211,36 @@
           <h2 class="section-subtitle">things I am exploring</h2>
         </div>
 
-        <div class="experiments-field">
+        <div class="elastic-gallery" id="elastic-gallery">
           {% for item in portfolio.live_projects %}
-          <div class="exp-artifact">
-            <div class="exp-inner">
-              <p class="exp-name">{{ item.title }}</p>
-              {% if item.category %}
-              <p class="exp-nature">{{ item.category }}</p>
-              {% endif %}
-              {% if item.description %}
-              <p class="exp-note">{{ item.description }}</p>
-              {% endif %}
-              {% if item.live_url %}
-              <a href="{{ item.live_url }}" target="_blank" rel="noopener noreferrer" class="exp-try">try it →</a>
-              {% endif %}
+          <div class="elastic-item {% if loop.index0 == 2 %}active{% endif %}" data-id="{{ loop.index0 }}" tabindex="0" role="button">
+            <!-- Background CSS Art Layer -->
+            <div class="elastic-bg">
+              <div class="css-art art-{{ loop.index0 }}"></div>
+              <div class="elastic-overlay"></div>
+            </div>
+
+            <!-- Content Container -->
+            <div class="elastic-content">
+              <!-- Active Content -->
+              <div class="elastic-active-content">
+                <div class="elastic-category">
+                  <span>{{ item.category or 'Experiment' }}</span>
+                </div>
+                <h3 class="elastic-title">{{ item.title }}</h3>
+                {% if item.live_url %}
+                <a href="{{ item.live_url }}" target="_blank" rel="noopener noreferrer" class="elastic-cta">
+                  View Project
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+                </a>
+                {% endif %}
+              </div>
+
+              <!-- Inactive Content -->
+              <div class="elastic-inactive-content">
+                <span class="elastic-desktop-text">{{ item.title }}</span>
+                <span class="elastic-mobile-text">{{ '0' ~ loop.index }} &mdash; {{ item.title }}</span>
+              </div>
             </div>
           </div>
           {% endfor %}

@@ -81,20 +81,10 @@
 
     initCursorParallax();
     initProjectRows();
-    initPortalParallax();
-
-    if (prefersReducedMotion()) {
-      initReducedMotion();
-      return;
-    }
-
-    setBodyState('outside');
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-
-    if (returnBtn) returnBtn.addEventListener('click', returnToOutside);
-    if (contactForm) contactForm.addEventListener('submit', handleContactSubmit);
+    initElasticGallery();
+    
+    // Bypass portal logic completely and just show the world
+    initReducedMotion();
   }
 
   /* ============================================================
@@ -129,6 +119,21 @@
           openRow(row);
         }
       });
+    });
+  }
+
+  function initElasticGallery() {
+    const items = document.querySelectorAll('.elastic-item');
+    if (!items.length) return;
+
+    items.forEach(item => {
+      const activate = () => {
+        items.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+      };
+      item.addEventListener('mouseenter', activate);
+      item.addEventListener('click', activate);
+      item.addEventListener('focus', activate);
     });
   }
 
