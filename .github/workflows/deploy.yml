@@ -49,6 +49,11 @@ jobs:
               cp static/resume.pdf instance/resume.pdf
             fi
             git checkout -- resume_data.json static/resume.pdf
+
+            # Dependencies are managed in the repo only; discard any server-side
+            # edits (e.g. from running `uv add` on the VM) so they can't block the pull.
+            git checkout -- pyproject.toml uv.lock
+
             if git ls-files --error-unmatch contact_messages.json >/dev/null 2>&1; then
               git checkout -- contact_messages.json
             fi
