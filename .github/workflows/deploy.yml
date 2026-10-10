@@ -6,7 +6,19 @@ on:
       - main
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Run tests
+        run: uv run --locked python -m unittest discover -s tests -v
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
@@ -23,8 +35,26 @@ jobs:
 
             cd /home/raj/personal_website
 
+            # Runtime data lives in instance/ (gitignored). Older versions wrote
+            # it into tracked files; preserve any server-side changes there
+            # before pulling so the pull can never conflict or lose data.
+            mkdir -p instance
+            if [ -f contact_messages.json ] && [ ! -f instance/contact_messages.json ]; then
+              cp contact_messages.json instance/contact_messages.json
+            fi
+            if ! git diff --quiet -- resume_data.json && [ ! -f instance/resume_data.json ]; then
+              cp resume_data.json instance/resume_data.json
+            fi
+            if ! git diff --quiet -- static/resume.pdf && [ ! -f instance/resume.pdf ]; then
+              cp static/resume.pdf instance/resume.pdf
+            fi
+            git checkout -- resume_data.json static/resume.pdf
+            if git ls-files --error-unmatch contact_messages.json >/dev/null 2>&1; then
+              git checkout -- contact_messages.json
+            fi
+
             git pull origin main
 
-            /home/raj/.local/bin/uv sync
+            /home/raj/.local/bin/uv sync --locked
 
             sudo systemctl restart personal_website

@@ -1,15 +1,15 @@
 {
   "name": "Raj Aryan",
   "title": "Backend Developer | AI, ML & GenAI | MCA @ JNU",
+  "tagline": "I build backend systems for AI products — RAG pipelines, local-LLM inference and vector search — designed to run cheaply and reliably.",
+  "summary": "MCA student at JNU and backend developer. I built IntelliDocs, a document-analysis system that runs LLM inference on local compute at $0 API cost and has 50+ signups, and MindSpace, a RAG-based mental wellness assistant that finished Top 100 at MumbaiHacks 2025. First Runner-Up at Promptverse 2.0 for context engineering.",
   "contact": {
-    "phone": "+91-6287753722",
-    "email_personal": "rajaryan0528@email.com",
+    "email_personal": "rajaryan0528@gmail.com",
     "email_jnu": "rajary66_scs@jnu.ac.in",
     "github": "https://github.com/rajaryn",
     "linkedin": "https://www.linkedin.com/in/rajaryn",
     "leetcode": "https://leetcode.com/u/rajaryn"
   },
-  "summary": "MCA student and backend developer actively building AI, ML, and GenAI systems. Recognized nationally for structural context engineering (First Runner-Up, Promptverse 2.0). Passionate about building robust, cost-efficient AI applications. Valued for foundational problem-solving, clean maintainable code, and clear technical communication.",
   "education": [
     {
       "degree": "M.C.A (Master of Computer Applications)",
@@ -31,10 +31,36 @@
     }
   ],
   "skills": {
-    "backend": ["Python", "C++", "SQL", "Flask", "REST APIs", "Object Oriented Programming (OOP)"],
-    "gen_ai": ["RAG Pipelines", "Vector Databases (TiDB, Pinecone)", "Local LLMs (Ollama)", "LLM APIs (OpenAI)", "Agentic Workflows", "Context Engineering"],
-    "tools": ["Git / GitHub", "Linux CLI", "AWS Lightsail", "Cloudinary", "Jupyter Notebook"],
-    "coursework": ["Data Structures & Algorithms", "DBMS", "Operating Systems", "Computer Networks", "Artificial Intelligence"]
+    "backend": [
+      "Python",
+      "C++",
+      "SQL",
+      "Flask",
+      "REST APIs",
+      "Object Oriented Programming (OOP)"
+    ],
+    "gen_ai": [
+      "RAG Pipelines",
+      "Vector Databases (TiDB, Pinecone)",
+      "Local LLMs (Ollama)",
+      "LLM APIs (OpenAI)",
+      "Agentic Workflows",
+      "Context Engineering"
+    ],
+    "tools": [
+      "Git / GitHub",
+      "Linux CLI",
+      "AWS Lightsail",
+      "Cloudinary",
+      "Jupyter Notebook"
+    ],
+    "coursework": [
+      "Data Structures & Algorithms",
+      "DBMS",
+      "Operating Systems",
+      "Computer Networks",
+      "Artificial Intelligence"
+    ]
   },
   "projects": [
     {
@@ -46,15 +72,22 @@
       "summary": "Context-aware mental health support assistant ('Mimi') powered by custom RAG pipelines and a hybrid database architecture.",
       "bullets": [
         "Built 'Mimi', an AI chatbot providing context-aware mental health support, using a custom RAG pipeline and Pinecone for vector storage.",
-        "Designed a hybrid database (MySQL & MongoDB) to guarantee ACID compliance for user data while scaling chat logs for 100+ concurrent sessions.",
-        "Constrained LLM outputs exclusively to verified psychological datasets, mitigating hallucinations and ensuring medically safe user interactions.",
+        "Designed a hybrid database (MySQL & MongoDB) to keep user data ACID-compliant while chat logs scale independently, targeting 100+ concurrent sessions.",
+        "Constrained LLM outputs to verified psychological datasets to reduce hallucination risk in a sensitive domain.",
         "Secured a Top 100 finish among 500+ teams and 3,000+ participants at MumbaiHacks 2025."
       ],
       "problem": "Mental health chatbots frequently suffer from hallucinations or ungrounded medical advice, while existing architectures struggle to balance strict transactional compliance with unstructured chat logs.",
       "architecture": "Custom RAG Pipeline + Pinecone Vector Store + Ollama Local LLM + MySQL (User ACID transactions) + MongoDB (Chat history logs).",
       "key_decisions": "Enforced strict context constraints using verified psychological reference datasets; isolated relational user profile state from non-relational chat streams.",
-      "results": "Top 100 finish out of 500+ teams; 100+ concurrent session throughput with zero medical hallucinations.",
-      "tech_stack": ["Python", "RAG Pipeline", "Ollama (Local LLM)", "Pinecone", "MySQL", "MongoDB"],
+      "results": "Top 100 finish out of 500+ teams at MumbaiHacks 2025; responses grounded in verified psychological reference datasets.",
+      "tech_stack": [
+        "Python",
+        "RAG Pipeline",
+        "Ollama (Local LLM)",
+        "Pinecone",
+        "MySQL",
+        "MongoDB"
+      ],
       "github": "https://github.com/rajaryn/mindspace"
     },
     {
@@ -73,7 +106,14 @@
       "architecture": "AWS Lightsail + Local Tunneling (Ollama Inference) + PyMuPDF + TiDB Vector Embeddings + Cloudinary File Storage.",
       "key_decisions": "Decoupled cloud frontend/storage from compute-intensive LLM inference via secure tunneling, driving external API cost down to $0.",
       "results": "50+ active signups; processed 100+ multi-page PDFs with zero external API fees.",
-      "tech_stack": ["Python", "TiDB Vector", "Ollama (Local LLM)", "PyMuPDF", "Cloudinary", "AWS Lightsail"],
+      "tech_stack": [
+        "Python",
+        "TiDB Vector",
+        "Ollama (Local LLM)",
+        "PyMuPDF",
+        "Cloudinary",
+        "AWS Lightsail"
+      ],
       "github": "https://github.com/rajaryn/intellidocs"
     }
   ],

@@ -1,28 +1,12 @@
 /*
- * Raj Aryan — Spatial Portfolio Engine
+ * Raj Aryan — Portfolio styles
  *
  * Content-agnostic. No project names anywhere in this file.
- * Spatial positions determined by Jinja loop index, not content.
- *
- * ZONE POSITION VARIANTS (6-cycle, set by Jinja):
- *   pos-left, pos-right, pos-center-left,
- *   pos-far-right, pos-offset-left, pos-center-right
  *
  * ZONE STATE MACHINE (set by JS scroll listener):
  *   data-zone-state: distant | approaching | active | leaving | past
- *
- * ZONE TYPE ANIMATIONS (different per zone type):
- *   .zone--project    → translateX (direction from data-zone-pos)
- *   .zone--experiments → scale + translateY
- *   .zone--traces      → translateY only
- *   .zone--contact     → translateY gentle
+ *   Without JS no state is set, and every section renders fully visible.
  */
-
-/* ============================================================
-   FONT IMPORT
-   ============================================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@300;400&display=swap');
 
 /* ============================================================
    DESIGN TOKENS
@@ -32,8 +16,8 @@
   --c-void:    #09080a;
   --c-ground:  #0d0c0e;
   --c-paper:   #ede9e1;
-  --c-muted:   #7c7872;
-  --c-dim:     #4e4c49;
+  --c-muted:   #a29e97;
+  --c-dim:     #85817b;
   --c-rule:    rgba(237,233,225,0.05);
   --c-accent:  #b89b6b;
 
@@ -71,11 +55,10 @@ button { font-family: inherit; background: none; border: none; cursor: pointer; 
   outline-offset: 3px;
 }
 
+
 /* ============================================================
    NAV OCCLUSION BAR
-   A fixed opaque strip at the top of the viewport.
-   World content scrolls behind it and becomes occluded cleanly.
-   z-index 999: above world content (z=2), below nav marks (z=1000).
+   A fixed translucent strip; content scrolls behind it.
    ============================================================ */
 
 body::before {
@@ -91,12 +74,29 @@ body::before {
   border-bottom: 1px solid var(--c-rule);
   z-index: 999;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.9s ease;
 }
 
-body[data-state="inside"]::before {
-  opacity: 1;
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1001;
+  padding: 0.5rem 0.9rem;
+  background: var(--c-paper);
+  color: var(--c-void);
+  font-family: var(--f-mono);
+  font-size: 0.8rem;
+  transform: translateY(-200%);
+}
+.skip-link:focus { transform: none; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* ============================================================
@@ -105,47 +105,46 @@ body[data-state="inside"]::before {
 
 .mark {
   position: fixed;
-  top: 1.4rem;
+  top: 1.25rem;
   left: 1.75rem;
   z-index: 1000;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-family: var(--f-mono);
-  font-size: 0.63rem;
-  font-weight: 300;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.9s ease;
 }
 
-body[data-state="inside"] .mark { opacity: 1; }
-
-.mark-name  { color: rgba(237,233,225,0.28); }
-.mark-sep   { color: rgba(237,233,225,0.10); }
-.mark-place { color: var(--c-muted); transition: color 0.5s ease; }
+.mark-name  { color: var(--c-muted); }
+.mark-sep   { color: var(--c-dim); }
+.mark-place { color: var(--c-accent); transition: color 0.5s ease; }
 
 /* ============================================================
-   RÉSUMÉ THREAD
+   SITE NAV
    ============================================================ */
 
-.resume-thread {
+.site-nav {
   position: fixed;
-  top: 1.4rem;
-  right: 1.75rem;
+  top: 0.85rem;
+  right: 1.25rem;
   z-index: 1000;
+  display: flex;
+  gap: 0.25rem;
   font-family: var(--f-mono);
-  font-size: 0.63rem;
-  font-weight: 300;
-  color: var(--c-dim);
-  letter-spacing: 0.1em;
-  opacity: 0;
-  transition: opacity 0.9s ease, color 0.25s ease;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
 }
 
-body[data-state="inside"] .resume-thread { opacity: 1; }
-.resume-thread:hover { color: var(--c-paper); }
+.nav-link {
+  display: inline-block;
+  padding: 0.4rem 0.5rem;   /* comfortable touch target */
+  color: var(--c-muted);
+  transition: color 0.25s ease;
+}
+.nav-link:hover { color: var(--c-paper); }
+.nav-link--resume { color: var(--c-accent); }
 
 /* ============================================================
    ENVIRONMENTAL LAYER
@@ -273,197 +272,6 @@ body[data-active-zone-pos="center"] .env-layer {
 }
 
 /* ============================================================
-   PARALLAX PASSAGE — fixed full-viewport environment
-   ============================================================ */
-
-.threshold {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  visibility: visible;
-}
-
-/* Ambient light gives the moving depth layers a destination. */
-.threshold::before,
-.threshold::after {
-  content: '';
-  position: absolute;
-  pointer-events: none;
-}
-
-.threshold::before {
-  z-index: 0;
-  inset: 0;
-  opacity: 1;
-  transition: opacity 0.45s ease;
-  background:
-    linear-gradient(135deg, rgba(184, 155, 107, 0.035), transparent 36%),
-    linear-gradient(315deg, rgba(237, 233, 225, 0.025), transparent 42%),
-    linear-gradient(180deg, #101012 0%, #0b0a0c 58%, #09080a 100%);
-}
-
-.threshold::after {
-  z-index: 5;
-  inset: 0;
-  opacity: 0.78;
-  background:
-    linear-gradient(180deg, rgba(9, 8, 10, 0.12) 0%, transparent 28%, rgba(9, 8, 10, 0.62) 100%),
-    linear-gradient(90deg, rgba(9, 8, 10, 0.32), transparent 22%, transparent 78%, rgba(9, 8, 10, 0.32));
-  transition: opacity 0.5s ease;
-}
-
-body[data-state="inside"] .threshold::before,
-body[data-state="inside"] .threshold::after {
-  opacity: 0;
-  transition: opacity 0.45s ease;
-}
-
-/* Keep the portal mounted so reverse scrolling can fade it back in on the
-   same composited layers instead of revealing a newly visible overlay. */
-body[data-state="inside"] .threshold {
-  pointer-events: none !important;
-  visibility: visible;
-}
-
-/* Entry cue */
-.entry-cue {
-  position: absolute;
-  z-index: 6;
-  left: 50%;
-  bottom: max(2.5rem, 10vh);
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  opacity: 1;
-  transition: opacity 0.5s ease;
-}
-
-.entry-cue__label {
-  font-family: var(--f-mono);
-  font-size: 0.68rem;
-  font-weight: 400;
-  color: rgba(237,233,225,0.54);
-  letter-spacing: 0.2em;
-  user-select: none;
-  transition: color 0.4s ease, opacity 0.4s ease;
-  text-transform: lowercase;
-}
-
-.scroll-arrow {
-  display: inline-block;
-  animation: bounceDown 2s infinite ease-in-out;
-  margin-left: 0.3em;
-}
-
-@keyframes bounceDown {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(4px);
-  }
-  60% {
-    transform: translateY(2px);
-  }
-}
-
-body[data-state="approaching"] .entry-cue__label { color: var(--c-accent); }
-
-body[data-state="opening"] .entry-cue__label,
-body[data-state="crossing"] .entry-cue__label { opacity: 0; }
-
-body[data-state="inside"] .entry-cue { opacity: 0; transition: opacity 0.5s ease; }
-
-/* ============================================================
-   PORTAL PARALLAX LAYERS
-   Abstract CSS light and haze layers follow independent scrub distances.
-   ============================================================ */
-
-.portal-layer {
-  position: absolute;
-  inset: -24% -16%; /* Overshoot keeps the moving layers beyond the edges. */
-  pointer-events: none;
-  will-change: transform;
-  transform: translate3d(0, var(--parallax-y, 0%), 0);
-  opacity: 0.9;
-  transition: opacity 0.6s ease;
-}
-
-/* Distant, soft illumination. */
-.portal-layer--far {
-  z-index: 1;
-  background:
-    linear-gradient(112deg, transparent 8%, rgba(66, 85, 108, 0.22) 33%, transparent 55%),
-    linear-gradient(68deg, transparent 26%, rgba(184, 155, 107, 0.1) 51%, transparent 75%);
-  filter: blur(32px);
-  opacity: 0.58;
-}
-
-/* Fine haze passes through the middle distance. */
-.portal-layer--mid {
-  z-index: 2;
-  background:
-    repeating-linear-gradient(102deg, transparent 0 12%, rgba(237, 233, 225, 0.045) 14%, transparent 18% 30%),
-    linear-gradient(90deg, transparent 16%, rgba(184, 155, 107, 0.11) 50%, transparent 84%);
-  filter: blur(12px);
-  opacity: 0.56;
-}
-
-/* A quiet foreground wash, close enough to feel motion. */
-.portal-layer--near {
-  z-index: 4;
-  background:
-    linear-gradient(108deg, transparent 12%, rgba(237, 233, 225, 0.075) 42%, transparent 61%),
-    linear-gradient(72deg, transparent 31%, rgba(184, 155, 107, 0.08) 48%, transparent 67%);
-  filter: blur(6px);
-  opacity: 0.7;
-}
-
-.portal-layer--title {
-  z-index: 3;
-  display: grid;
-  place-items: start center;
-  padding-top: 14vh;
-  opacity: var(--passage-title-opacity, 0);
-}
-
-.portal-layer__title {
-  color: rgba(237, 233, 225, 0.94);
-  font-family: var(--f-serif);
-  font-size: clamp(2.6rem, 9vw, 7rem);
-  font-style: italic;
-  font-weight: 400;
-  letter-spacing: -0.035em;
-  text-shadow: 0 3px 40px rgba(9, 8, 10, 0.8);
-}
-
-/* Fade the layers out as crossing completes */
-body[data-state="inside"] .portal-layer {
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-
-/* The first portfolio copy is deliberately held until the passage ends. */
-.zone--me .zone-inner {
-  opacity: var(--me-copy-reveal, 1);
-  transition: transform 0.95s var(--ease-out), opacity 90ms linear;
-}
-
-/* The landing scroll and the entrance transform must not compete. Once the
-   first view is placed, keep its content physically still while the copy
-   finishes its intentional opacity reveal. */
-body[data-entry-landed="true"] .zone--me .zone-inner {
-  transform: translate3d(0, 0, 0) scale(1);
-  transition: opacity 180ms ease-out;
-}
-
-
-/* ============================================================
    THE WORLD
    The opening content approaches as the layered passage fades away.
    ============================================================ */
@@ -475,9 +283,6 @@ body[data-entry-landed="true"] .zone--me .zone-inner {
   min-height: 100vh;
   display: flow-root; /* Establish BFC to prevent .zone--me's large margin-top from collapsing out */
 }
-
-body:not([data-state="inside"]) .world { pointer-events: none; }
-body[data-state="inside"] .world { pointer-events: auto; }
 
 
 
@@ -497,7 +302,6 @@ body[data-state="inside"] .world { pointer-events: auto; }
 @media (pointer: fine) {
 
   /* Titles — medium depth, most perceptible layer */
-  .zone-name,
   .section-subtitle,
   .me-name {
     transition: transform 0.12s linear;
@@ -508,7 +312,6 @@ body[data-state="inside"] .world { pointer-events: auto; }
   }
 
   /* Body / statement text — half depth of titles */
-  .zone-statement,
   .me-statement {
     transition: transform 0.12s linear;
     transform: translate(
@@ -518,8 +321,6 @@ body[data-state="inside"] .world { pointer-events: auto; }
   }
 
   /* Metadata — barely perceptible, creates depth illusion */
-  .zone-evidence,
-  .zone-header,
   .me-context,
   .section-title {
     transition: transform 0.12s linear;
@@ -539,8 +340,7 @@ body[data-state="inside"] .world { pointer-events: auto; }
   }
 
   .proj-tagline,
-  .proj-summary,
-  .exp-name {
+  .proj-summary {
     transition: transform 0.12s linear;
     transform: translate(
       calc(var(--cursor-pan-x, 0) * -3px),
@@ -553,8 +353,6 @@ body[data-state="inside"] .world { pointer-events: auto; }
   .proj-date,
   .pev-val,
   .proj-stack,
-  .exp-nature,
-  .exp-note,
   .trace-name,
   .trace-where,
   .trace-detail,
@@ -575,8 +373,6 @@ body[data-state="inside"] .world { pointer-events: auto; }
    ============================================================ */
 
 @media (pointer: coarse) {
-
-  .zone-name,
   .section-subtitle,
   .me-name,
   .proj-name {
@@ -586,12 +382,9 @@ body[data-state="inside"] .world { pointer-events: auto; }
       calc(var(--cursor-pan-y, 0) * -5px)
     );
   }
-
-  .zone-statement,
   .me-statement,
   .proj-tagline,
-  .proj-summary,
-  .exp-name {
+  .proj-summary {
     transition: transform 0.35s ease;
     transform: translate(
       calc(var(--cursor-pan-x, 0) * -2.5px),
@@ -602,8 +395,6 @@ body[data-state="inside"] .world { pointer-events: auto; }
   .section-title,
   .proj-num,
   .proj-badge,
-  .exp-nature,
-  .exp-note,
   .trace-name,
   .trace-where {
     transition: transform 0.35s ease;
@@ -680,7 +471,7 @@ body[data-state="inside"] .world { pointer-events: auto; }
 
 .ctx-label {
   font-family: var(--f-mono);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   color: var(--c-dim);
   letter-spacing: 0.22em;
   text-transform: lowercase;
@@ -694,7 +485,7 @@ body[data-state="inside"] .world { pointer-events: auto; }
 
 .ctx-date {
   font-family: var(--f-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--c-dim);
   margin-top: 0.3rem;
 }
@@ -717,98 +508,26 @@ body[data-state="inside"] .world { pointer-events: auto; }
 /* ============================================================
    ZONE — base styles
    All content destinations share this base.
-   Specific types (.zone--project, --experiments, --traces, --contact)
-   and position variants (.zone--pos-left etc.) extend it.
+   Section types (.zone--projects, --skills, --experiments, --traces,
+   --contact) extend it.
    ============================================================ */
 
-/* Base (pre-entry / before state assignment) */
-.zone {
-  position: relative;
-  opacity: 0.12; 
-  transition: opacity 0.9s ease;
-}
 
 .zone-inner {
   transition: transform 0.95s var(--ease-out), opacity 0.95s ease;
 }
 
+.zone { position: relative; transition: opacity 0.9s ease; }
+
 /* State-driven opacity */
 .zone[data-zone-state="distant"]     { opacity: 0.12; }
 .zone[data-zone-state="approaching"] { opacity: 0.45; }
 .zone[data-zone-state="active"]      { opacity: 1 !important; }
-.zone[data-zone-state="leaving"]     { opacity: 0.45; }
+.zone[data-zone-state="leaving"]     { opacity: 0.6; }
 .zone[data-zone-state="past"]        { opacity: 0.12; }
 
 /* Keep the introduction legible throughout its full scroll-through. */
-body[data-state="inside"] .zone--me { opacity: 1 !important; }
-
-/* ============================================================
-   ZONE POSITION VARIANTS — 6 spatial positions
-   Each has distinct margin and padding-top for vertical spacing variation.
-   The non-uniform spacing creates the continuous-space feeling.
-   ============================================================ */
-
-/* 0: left-anchored, standard */
-.zone--pos-left {
-  margin-left: 6vw;
-  margin-right: auto;
-  max-width: 640px;
-  padding: 10vh 2rem 8vh 2rem;
-}
-
-/* 1: right-anchored, standard */
-.zone--pos-right {
-  margin-left: auto;
-  margin-right: 6vw;
-  max-width: 640px;
-  padding: 14vh 2rem 7vh 2rem;
-}
-
-/* 2: center-left — pushed further from edge, closer vertical rhythm */
-.zone--pos-center-left {
-  margin-left: 20vw;
-  margin-right: auto;
-  max-width: 580px;
-  padding: 8vh 2rem 9vh 2rem;
-}
-
-/* 3: far-right — reaches toward viewport edge */
-.zone--pos-far-right {
-  margin-left: auto;
-  margin-right: 2vw;
-  max-width: 560px;
-  padding: 16vh 2rem 6vh 2rem;
-}
-
-/* 4: offset-left — slightly inside left, more breathing room */
-.zone--pos-offset-left {
-  margin-left: 12vw;
-  margin-right: auto;
-  max-width: 600px;
-  padding: 11vh 2rem 8vh 2rem;
-}
-
-/* 5: center-right — inset from right */
-.zone--pos-center-right {
-  margin-left: auto;
-  margin-right: 14vw;
-  max-width: 580px;
-  padding: 13vh 2rem 7vh 2rem;
-}
-
-/* ============================================================
-   ZONE: PROJECTS INTRO
-   ============================================================ */
-
-.zone--projects-intro {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 30vh 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
+.zone--me { opacity: 1 !important; }
 
 /* ============================================================
    SECTION HEADERS
@@ -822,15 +541,10 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
   margin-bottom: 4.5rem;
 }
 
-/* Projects intro zeroes out margin because it is the entire zone */
-.zone--projects-intro .section-header {
-  margin-bottom: 0;
-  align-items: center;
-}
 
 .section-title {
   font-family: var(--f-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 300;
   color: var(--c-muted);
   letter-spacing: 0.25em;
@@ -844,21 +558,6 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
   color: rgba(237,233,225,0.9);
   letter-spacing: 0.02em;
   line-height: 1.2;
-}
-
-/* Intro Entrance Animation: Scale + Y offset */
-.zone--projects-intro[data-zone-state="distant"] .zone-inner,
-.zone--projects-intro[data-zone-state="approaching"] .zone-inner {
-  transform: translateY(20px) scale(0.97);
-}
-
-.zone--projects-intro[data-zone-state="leaving"] .zone-inner,
-.zone--projects-intro[data-zone-state="past"] .zone-inner {
-  transform: translateY(-15px) scale(1.02);
-}
-
-.zone--projects-intro[data-zone-state="active"] .zone-inner {
-  transform: translateY(0) scale(1);
 }
 
 /* ============================================================
@@ -898,12 +597,12 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 
 .proj-row {
   border-bottom: 1px solid rgba(237,233,225,0.06);
-  cursor: pointer;
-  outline: none;
   overflow: hidden; /* clips the panel — this is the containment boundary */
 }
 
-.proj-row:focus-visible {
+.proj-heading { font: inherit; }
+
+.proj-header:focus-visible {
   outline: 1px solid var(--c-accent);
   outline-offset: -1px;
 }
@@ -914,19 +613,21 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
   grid-template-columns: 3rem 1fr auto;
   align-items: center;
   gap: 1.5rem;
+  width: 100%;
+  text-align: left;
   padding: 1.8rem 1rem 1.8rem 0;
   transition: opacity 0.25s ease;
   user-select: none;
 }
 
 .proj-row:hover .proj-header,
-.proj-row[aria-expanded="true"] .proj-header {
+.proj-row.is-open .proj-header {
   opacity: 1;
 }
 
 .proj-num {
   font-family: var(--f-mono);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   color: var(--c-dim);
   letter-spacing: 0.12em;
   padding-top: 0.1rem;
@@ -939,6 +640,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 }
 
 .proj-name {
+  display: block;
   font-family: var(--f-serif);
   font-size: clamp(1.4rem, 2.8vw, 2rem);
   font-weight: 400;
@@ -950,13 +652,14 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 }
 
 .proj-row:hover .proj-name,
-.proj-row[aria-expanded="true"] .proj-name {
+.proj-row.is-open .proj-name {
   color: var(--c-paper);
 }
 
 .proj-tagline {
+  display: block;
   font-family: var(--f-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--c-dim);
   letter-spacing: 0.06em;
 }
@@ -968,7 +671,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
   transition: transform 0.45s var(--ease-out), color 0.3s ease;
 }
 
-.proj-row[aria-expanded="true"] .proj-cue {
+.proj-row.is-open .proj-cue {
   transform: rotate(90deg);
   color: var(--c-accent);
 }
@@ -987,7 +690,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
   transition: max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.proj-row[aria-expanded="true"] .proj-panel {
+.proj-row.is-open .proj-panel {
   max-height: 2000px; /* generous upper bound — content determines actual height */
 }
 
@@ -1004,7 +707,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
   transition: opacity 0.35s ease 0.15s, transform 0.5s var(--ease-out) 0.1s;
 }
 
-.proj-row[aria-expanded="true"] .proj-panel-body {
+.proj-row.is-open .proj-panel-body {
   opacity: 1;
   transform: translateY(0);
 }
@@ -1016,7 +719,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
   gap: 1.5rem;
   align-items: center;
   font-family: var(--f-mono);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
 }
 
 .proj-badge {
@@ -1053,7 +756,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 
 .pev-key {
   font-family: var(--f-mono);
-  font-size: 0.58rem;
+  font-size: 0.75rem;
   color: var(--c-dim);
   letter-spacing: 0.18em;
   text-transform: lowercase;
@@ -1074,13 +777,13 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 
 .proj-stack-atom {
   font-family: var(--f-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--c-dim);
 }
 
 .proj-stack-sep {
   font-family: var(--f-mono);
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   color: var(--c-dim);
   opacity: 0.2;
   padding: 0 0.4rem;
@@ -1095,7 +798,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 
 .proj-try {
   font-family: var(--f-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--c-paper);
   border-bottom: 1px solid var(--c-accent);
   padding-bottom: 0.18rem;
@@ -1106,7 +809,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 
 .proj-src {
   font-family: var(--f-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--c-dim);
   letter-spacing: 0.1em;
   transition: color 0.25s ease;
@@ -1159,28 +862,11 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 .zone--contact[data-zone-state="active"] .zone-inner { transform: translateY(0); }
 
 /* ============================================================
-   SECTION TRANSITIONS
-   ============================================================ */
-
-:root {
-  --section-gap-height: 15vh;
-  --section-gap-margin: 10vh;
-}
-
-.zone-transition {
-  display: none;
-}
-
-/* ============================================================
-   ZONE LABEL — used by experiments/traces/contact
-   ============================================================ */
-
-/* ============================================================
    ZONE: EXPERIMENTS
    ============================================================ */
 
 .zone--experiments {
-  max-width: 680px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 15vh 2rem;
 }
@@ -1212,10 +898,10 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
   cursor: pointer;
   flex: 1;
   transition: flex 0.7s cubic-bezier(0.25, 1, 0.5, 1), filter 0.7s ease;
-  filter: brightness(0.5);
+  filter: brightness(0.7);
 }
 
-.elastic-item:hover { filter: brightness(0.75); }
+.elastic-item:hover { filter: brightness(0.85); }
 .elastic-item.active {
   flex: 4;
   filter: brightness(1);
@@ -1278,17 +964,21 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 
 .elastic-item.active .elastic-overlay { opacity: 1; }
 
-.elastic-content {
+.elastic-toggle {
   position: absolute;
-  inset: auto 0 0 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 1.5rem;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  border-radius: inherit;
 }
 
+.elastic-toggle:focus-visible { outline-offset: -3px; }
+
 .elastic-active-content {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 2;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -1297,13 +987,15 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
   transition: all 0.5s ease;
 }
 
+.elastic-item:not(.active) .elastic-active-content { pointer-events: none; }
+
 .elastic-item.active .elastic-active-content {
   opacity: 1;
   transform: translateY(0);
   transition-delay: 0.2s;
 }
 
-.elastic-category span {
+.elastic-category > span:first-child {
   display: inline-block;
   white-space: nowrap;
   border-radius: 9999px;
@@ -1312,7 +1004,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
   backdrop-filter: blur(8px);
   padding: 0.25rem 0.5rem;
   font-family: var(--f-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -1327,6 +1019,13 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
   color: #fff;
   line-height: 1.1;
   margin: 0;
+}
+
+.elastic-desc {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.85);
+  max-width: 42ch;
 }
 
 .elastic-cta {
@@ -1378,14 +1077,14 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
   font-family: var(--f-mono);
   font-size: 0.75rem;
   font-weight: 500;
-  color: rgba(255,255,255,0.7);
+  color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 @media (min-width: 768px) {
-  .elastic-content { padding: 2rem; }
+  .elastic-active-content { padding: 2rem; }
   .elastic-desktop-text { display: block; }
   .elastic-mobile-text { display: none; }
   .elastic-inactive-content {
@@ -1421,7 +1120,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 
 .chapter-label {
   font-family: var(--f-mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 300;
   color: var(--c-muted);
   letter-spacing: 0.16em;
@@ -1471,7 +1170,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 
 .trace-where {
   font-family: var(--f-mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 300;
   color: var(--c-accent);
   letter-spacing: 0.04em;
@@ -1479,11 +1178,10 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 
 .trace-detail {
   font-family: var(--f-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 300;
   color: var(--c-dim);
   letter-spacing: 0.04em;
-  opacity: 0.8;
 }
 
 /* ============================================================
@@ -1516,7 +1214,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 
 .chan {
   font-family: var(--f-mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 300;
   color: var(--c-muted);
   letter-spacing: 0.05em;
@@ -1544,7 +1242,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 
 .tx-label {
   font-family: var(--f-mono);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 300;
   color: var(--c-dim);
   letter-spacing: 0.2em;
@@ -1555,7 +1253,7 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
   width: 100%;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(237,233,225,0.09);
+  border-bottom: 1px solid rgba(237,233,225,0.25);
   font-family: var(--f-serif);
   font-size: 1rem;
   color: var(--c-paper);
@@ -1577,35 +1275,32 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 .tx-send {
   align-self: flex-start;
   font-family: var(--f-mono);
-  font-size: 0.7rem;
-  font-weight: 300;
+  font-size: 0.75rem;
   color: var(--c-accent);
   letter-spacing: 0.12em;
-  padding: 0.4rem 0;
+  padding: 0.6rem 1.4rem;
+  border: 1px solid rgba(184,155,107,0.5);
+  transition: color 0.2s ease, border-color 0.2s ease;
   margin-top: 0.4rem;
-  transition: opacity 0.2s ease;
 }
 
-.tx-send:hover   { opacity: 0.6; }
-.tx-send:disabled { opacity: 0.25; cursor: not-allowed; }
+.tx-send:hover   { color: var(--c-paper); border-color: var(--c-paper); }
+.tx-send:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .tx-status {
   display: none;
   font-family: var(--f-mono);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   font-weight: 300;
   letter-spacing: 0.05em;
   padding: 0.5rem 0;
   border-top: 1px solid rgba(237,233,225,0.04);
 }
 
-.tx-status.ok   { display: block; color: #8aab8f; }
-.tx-status.fail { display: block; color: #ab8a8a; }
+.tx-status.ok   { display: block; color: #9cc4a2; }
+.tx-status.fail { display: block; color: #d39b9b; }
 
 .world-end {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding-top: 2.5rem;
   padding-bottom: 6vh;
   border-top: 1px solid rgba(237,233,225,0.04);
@@ -1613,114 +1308,400 @@ body[data-state="inside"] .zone--me { opacity: 1 !important; }
 
 .world-end span {
   font-family: var(--f-mono);
-  font-size: 0.57rem;
+  font-size: 0.75rem;
   color: var(--c-dim);
   letter-spacing: 0.06em;
-  opacity: 0.35;
 }
 
 .return-mark {
   font-family: var(--f-mono);
-  font-size: 0.65rem;
-  color: var(--c-dim);
-  opacity: 0.3;
-  transition: opacity 0.25s ease, color 0.25s ease;
+  font-size: 0.75rem;
+  color: var(--c-muted);
+  padding: 0.5rem;
+  transition: color 0.25s ease;
 }
 
-.return-mark:hover { opacity: 0.9; color: var(--c-paper); }
+.return-mark:hover { color: var(--c-paper); }
+
+
+@media (max-width: 768px) {
+  .zone--projects { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .proj-header {
+    grid-template-columns: 2.5rem 1fr auto;
+    gap: 1rem;
+    padding: 1.4rem 0.5rem 1.4rem 0;
+  }
+  .proj-name { font-size: clamp(1.2rem, 5vw, 1.6rem); }
+  .proj-panel-inner {
+    padding-left: 1rem;
+  }
+  .zone--experiments { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .zone--traces      { margin-left: 0; padding-left: 1.25rem; padding-right: 1.25rem; }
+  .zone--contact     { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .zone--skills      { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .mark          { display: none; }
+  .site-nav      { right: 0.5rem; left: 0.5rem; justify-content: flex-end; top: 0.6rem; }
+  .zone--me          { padding-left: 1.25rem; padding-right: 1.25rem; }
+}
+
+@media (max-width: 420px) {
+  .nav-link--optional { display: none; }
+}
+
+/* ============================================================
+   ABOUT — pitch + calls to action
+   ============================================================ */
+
+.me-pitch {
+  font-size: clamp(1.2rem, 2.4vw, 1.5rem);
+  line-height: 1.5;
+  color: rgba(237,233,225,0.88);
+  max-width: 38ch;
+}
+
+.me-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+}
+
+.me-cta {
+  font-family: var(--f-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: var(--c-muted);
+  padding: 0.6rem 0;
+  border-bottom: 1px solid transparent;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+.me-cta:hover { color: var(--c-paper); border-bottom-color: var(--c-paper); }
+
+.me-cta--primary {
+  color: var(--c-void);
+  background: var(--c-paper);
+  padding: 0.6rem 1.2rem;
+}
+.me-cta--primary:hover { color: var(--c-void); background: var(--c-accent); border-bottom-color: transparent; }
+
+.section-header--center {
+  align-items: center;
+  text-align: center;
+}
+
+/* ============================================================
+   SKILLS
+   ============================================================ */
+
+.zone--skills {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 10vh 2rem;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 2.5rem 3rem;
+}
+
+.skill-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(237,233,225,0.08);
+}
+
+.skill-label {
+  font-family: var(--f-mono);
+  font-size: 0.75rem;
+  color: var(--c-accent);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.skill-items {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: rgba(237,233,225,0.82);
+}
+
+.zone--skills[data-zone-state="distant"] .zone-inner,
+.zone--skills[data-zone-state="approaching"] .zone-inner { transform: translateY(16px); }
+.zone--skills[data-zone-state="active"] .zone-inner { transform: translateY(0); }
+
+/* ============================================================
+   BACKGROUND — experience bullets
+   ============================================================ */
+
+.trace-bullets {
+  margin-top: 0.5rem;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(237,233,225,0.7);
+}
+
+.trace-bullets li::marker { color: var(--c-dim); }
+
+/* ============================================================
+   CONTACT FORM EXTRAS
+   ============================================================ */
+
+.tx-optional { text-transform: none; letter-spacing: 0.04em; }
+
+.tx-hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ============================================================
+   REQUEST TRACE — hero
+   ============================================================ */
+
+.me-trace {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 0.35rem;
+  font-family: var(--f-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--c-dim);
+}
+
+.me-trace-dot {
+  width: 6px;
+  height: 6px;
+  margin-right: 0.7rem;
+  border-radius: 50%;
+  background: #9cc4a2;
+  animation: tracePulse 2.4s ease-out infinite;
+}
+
+.me-trace-seg + .me-trace-seg::before {
+  content: '·';
+  margin: 0 0.6rem;
+  color: var(--c-dim);
+}
+
+.me-trace-ok { color: #9cc4a2; }
+
+@keyframes tracePulse {
+  0%   { box-shadow: 0 0 0 0 rgba(156,196,162,0.55); }
+  70%  { box-shadow: 0 0 0 8px rgba(156,196,162,0); }
+  100% { box-shadow: 0 0 0 0 rgba(156,196,162,0); }
+}
+
+/* ============================================================
+   SYSTEM MAP — project architecture
+   Components hang off a vertical bus; while the panel is open a
+   signal travels down the bus and each node lights as it passes.
+   ============================================================ */
+
+.sysmap {
+  --bus-x: 0.3rem;
+  --cycle: calc(var(--n, 4) * 0.7s + 0.8s);
+  list-style: none;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-left: 1.4rem;
+  margin-top: 0.5rem;
+}
+
+.sysmap::before {
+  content: '';
+  position: absolute;
+  left: var(--bus-x);
+  top: 1rem;
+  bottom: 1rem;
+  width: 1px;
+  background: rgba(184,155,107,0.3);
+}
+
+.sysmap::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--bus-x) - 2.5px);
+  top: 1rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  box-shadow: 0 0 10px 2px rgba(184,155,107,0.6);
+  opacity: 0;
+}
+
+.proj-row.is-open .sysmap::after {
+  animation: busTravel var(--cycle) linear infinite;
+}
+
+.sysmap-node {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.75rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid rgba(237,233,225,0.14);
+  background: rgba(9,8,10,0.55);
+  font-family: var(--f-mono);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+/* stub connecting each node to the bus */
+.sysmap-node::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  width: calc(1.4rem - var(--bus-x));
+  height: 1px;
+  background: rgba(184,155,107,0.3);
+}
+
+.proj-row.is-open .sysmap-node {
+  animation: nodeLit var(--cycle) ease-out infinite;
+  animation-delay: calc(var(--i) * 0.7s + 0.2s);
+}
+
+.sysmap-name { color: rgba(237,233,225,0.88); }
+.sysmap-note { color: var(--c-dim); }
+
+@keyframes busTravel {
+  0%   { top: 1rem; opacity: 0; }
+  6%   { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { top: calc(100% - 1rem); opacity: 0; }
+}
+
+@keyframes nodeLit {
+  0%   { border-color: rgba(184,155,107,0.9); box-shadow: 0 0 14px rgba(184,155,107,0.18); }
+  30%, 100% { border-color: rgba(237,233,225,0.14); box-shadow: none; }
+}
+
+/* ============================================================
+   LIVE STATUS — experiments
+   ============================================================ */
+
+.elastic-category {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+}
+
+.exp-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--f-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.8);
+}
+.exp-status[hidden] { display: none; }
+
+.exp-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.exp-status[data-state="up"]   { color: #9cc4a2; }
+.exp-status[data-state="idle"] { color: #d8c08a; }
+.exp-status[data-state="down"] { color: #d39b9b; }
+
+/* ============================================================
+   COLOPHON — footer
+   ============================================================ */
+
+.colophon {
+  max-width: 46ch;
+  margin-bottom: 2.5rem;
+}
+
+.colophon-title {
+  font-family: var(--f-mono);
+  font-size: 0.75rem;
+  color: var(--c-muted);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.colophon-body {
+  font-size: 0.98rem;
+  font-style: italic;
+  line-height: 1.7;
+  color: rgba(237,233,225,0.62);
+}
+
+.colophon-mono {
+  font-family: var(--f-mono);
+  font-style: normal;
+  font-size: 0.8rem;
+  color: var(--c-accent);
+}
+
+.world-end-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
 /* ============================================================
    REDUCED MOTION
+   No parallax, no scroll-driven dimming, no animated transitions.
    ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
   }
 
-  .threshold, .env-layer { display: none; }
-  .mark, .resume-thread  { opacity: 1 !important; }
-  .world { pointer-events: auto !important; }
-  body[data-state="inside"] .zone--me { margin-top: 0; }
+  .env-layer::after { translate: none !important; }
+  .me-trace-dot,
+  .sysmap-node { animation: none !important; }
+  .sysmap::after { display: none; }
 
   .zone,
   .zone-inner,
-  .zone-evidence,
-  .ev-row {
+  .section-title,
+  .section-subtitle,
+  .me-name,
+  .me-statement,
+  .me-context,
+  .proj-name,
+  .proj-tagline,
+  .proj-summary,
+  .proj-num,
+  .proj-badge,
+  .proj-date,
+  .pev-val,
+  .proj-stack,
+  .trace-name,
+  .trace-where,
+  .trace-detail,
+  .chapter-label {
     opacity: 1 !important;
     transform: none !important;
   }
-
-  body[data-active-zone] .zone { opacity: 1 !important; }
-}
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-
-@media (max-width: 1100px) {
-  .zone--pos-center-left  { margin-left: 12vw; }
-  .zone--pos-far-right    { margin-right: 3vw; }
-  .zone--pos-offset-left  { margin-left: 8vw;  }
-  .zone--pos-center-right { margin-right: 8vw; }
-  .zone--traces           { margin-left: 5vw;  }
-}
-
-@media (max-width: 768px) {
-
-
-  /* All position variants collapse to full-width on mobile */
-  .zone--pos-left,
-  .zone--pos-right,
-  .zone--pos-center-left,
-  .zone--pos-far-right,
-  .zone--pos-offset-left,
-  .zone--pos-center-right {
-    margin-left: 0;
-    margin-right: 0;
-    max-width: 100%;
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
-  }
-
-  .zone--projects { padding-left: 1.25rem; padding-right: 1.25rem; }
-
-  .proj-header {
-    grid-template-columns: 2.5rem 1fr auto;
-    gap: 1rem;
-    padding: 1.4rem 0.5rem 1.4rem 0;
-  }
-
-  .proj-name { font-size: clamp(1.2rem, 5vw, 1.6rem); }
-
-  .proj-panel-inner {
-    padding-left: 3.5rem;
-  }
-
-  .zone--experiments { padding-left: 1.25rem; padding-right: 1.25rem; }
-  .zone--traces      { margin-left: 0; padding-left: 1.25rem; padding-right: 1.25rem; }
-  .zone--contact     { padding-left: 1.25rem; padding-right: 1.25rem; }
-
-  .exp-artifact:nth-child(2) .exp-inner,
-  .exp-artifact:nth-child(4) .exp-inner { padding-left: 1.5rem; }
-
-  .mark          { left: 1rem; top: 1rem; }
-  .resume-thread { right: 1rem; top: 1rem; }
-  .zone--me          { padding-left: 1.25rem; padding-right: 1.25rem; }
-}
-
-@media (max-width: 480px) {
-  .zone-name        { font-size: 1.9rem; }
-  .contact-opening  { font-size: 0.95rem; }
-}
-
-@media (min-width: 1440px) {
-  .zone--pos-left         { margin-left: 9vw; }
-  .zone--pos-right        { margin-right: 9vw; }
-  .zone--pos-center-left  { margin-left: 25vw; }
-  .zone--pos-far-right    { margin-right: 2vw; }
-  .zone--pos-offset-left  { margin-left: 15vw; }
-  .zone--pos-center-right { margin-right: 17vw; }
-  .zone--traces           { margin-left: 9vw; }
 }

@@ -1,10 +1,11 @@
 [project]
 name = "personal-website"
 version = "0.1.0"
-description = "Add your description here"
+description = "Raj Aryan's personal portfolio — Flask app served via Uvicorn."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "a2wsgi>=1.10.0",
     "flask>=3.1.3",
     "python-dotenv>=1.2.3",
     "uvicorn>=0.51.0",

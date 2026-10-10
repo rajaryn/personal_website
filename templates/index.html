@@ -3,75 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="{{ portfolio.name if portfolio else 'Raj Aryan' }} — {{ portfolio.title if portfolio else 'Backend developer building AI systems and live software.' }}">
-  <meta name="author" content="{{ portfolio.name if portfolio else 'Raj Aryan' }}">
-  <meta property="og:title" content="{{ portfolio.name if portfolio else 'Raj Aryan' }}">
-  <meta property="og:description" content="{{ portfolio.summary if portfolio else 'Backend developer.' }}">
+  {% set site_name = portfolio.name if portfolio and portfolio.name else 'Raj Aryan' %}
+  {% set site_description = portfolio.tagline or portfolio.summary if portfolio else 'Backend developer building AI systems.' %}
+  <meta name="description" content="{{ site_description }}">
+  <meta name="author" content="{{ site_name }}">
+  <link rel="canonical" href="{{ url_for('index', _external=True) }}">
+  <meta property="og:title" content="{{ site_name }}{% if portfolio and portfolio.title %} — {{ portfolio.title }}{% endif %}">
+  <meta property="og:description" content="{{ site_description }}">
   <meta property="og:type" content="website">
-  <title>{{ portfolio.name if portfolio else 'Raj Aryan' }}</title>
+  <meta property="og:url" content="{{ url_for('index', _external=True) }}">
+  <meta name="twitter:card" content="summary">
+  <title>{{ site_name }}{% if portfolio and portfolio.title %} — {{ portfolio.title }}{% endif %}</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital@0;1&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2285%22>◈</text></svg>">
 </head>
 
 <!--
-  STATES: outside → approaching → opening → crossing → inside
-  WORLD:  world-opening → [projects loop] → experiments → traces → contact
-  DATA:   all content from resume_data.json via Flask/Jinja.
-          No project names, URLs, or content hardcoded in this template.
+  DATA: all content from resume_data.json via Flask/Jinja.
+        No project names, URLs, or content hardcoded in this template.
 -->
-<body data-state="inside">
+<body>
 
-  <!-- Orientation mark — not a navbar. Updated by JS as visitor moves. -->
-  <aside class="mark" id="mark" aria-label="Current location" aria-live="polite">
-    <span class="mark-name">{{ portfolio.name if portfolio else 'Raj Aryan' }}</span>
-    <span class="mark-sep" aria-hidden="true">/</span>
-    <span class="mark-place" id="mark-place">world</span>
-  </aside>
+  <a class="skip-link" href="#world">Skip to content</a>
 
-  <!-- Résumé link — fixed top-right, minimal -->
-  <a href="{{ url_for('resume') }}" target="_blank" rel="noopener noreferrer"
-     class="resume-thread" aria-label="Open PDF résumé">résumé</a>
+  <!-- Orientation mark — shows the section currently in view. Updated by JS. -->
+  <div class="mark" id="mark" aria-hidden="true">
+    <span class="mark-name">{{ site_name }}</span>
+    <span class="mark-sep">/</span>
+    <span class="mark-place" id="mark-place">about</span>
+  </div>
 
-  <!-- Environmental layer — fixed radial gradient.
-       Shifts per active zone position (left/right/center).
-       Driven by body[data-active-zone-pos]. -->
+  <nav class="site-nav" aria-label="Sections">
+    {% if portfolio and portfolio.projects %}<a href="#zone-projects" class="nav-link nav-link--optional">projects</a>{% endif %}
+    {% if portfolio and portfolio.live_projects %}<a href="#zone-experiments" class="nav-link nav-link--optional">experiments</a>{% endif %}
+    <a href="#zone-contact" class="nav-link">contact</a>
+    <a href="{{ url_for('resume') }}" target="_blank" rel="noopener noreferrer" class="nav-link nav-link--resume">résumé<span class="visually-hidden"> (PDF, opens in new tab)</span></a>
+  </nav>
+
+  <!-- Environmental layer — fixed background whose texture shifts per active section. -->
   <div class="env-layer" id="env-layer" aria-hidden="true"></div>
 
-  <!-- ============================================================
-       THE WORLD
-       The first destination comes into view beneath the fading passage.
-
-       Content zones (driven entirely from resume_data.json):
-         world-opening → projects → experiments → traces → contact
-       ============================================================ -->
-  <main class="world" id="world">
+  <main class="world" id="world" tabindex="-1">
 
     <!-- ============================================================
-         IDENTITY (ME) — First destination inside the world
+         ABOUT — who, what, and how to reach me in the first viewport
          ============================================================ -->
-    <section class="zone zone--me" id="zone-me" data-zone="me" data-zone-pos="center" data-zone-label="raj">
+    <section class="zone zone--me" id="zone-me" data-zone="me" data-zone-pos="center" data-zone-label="about">
       <div class="zone-inner me-layout">
-        <div class="section-header">
-          <p class="section-title">me</p>
-          <h2 class="section-subtitle">the person behind the work</h2>
-        </div>
         <header class="me-header">
-          <h1 class="me-name">{{ portfolio.name if portfolio else 'Raj Aryan' }}</h1>
-          <p class="me-title">{{ portfolio.title if portfolio else 'Backend Developer' }}</p>
+          <h1 class="me-name">{{ site_name }}</h1>
+          {% if portfolio and portfolio.title %}<p class="me-title">{{ portfolio.title }}</p>{% endif %}
         </header>
 
+        {% if portfolio and portfolio.tagline %}
+        <p class="me-pitch">{{ portfolio.tagline }}</p>
+        {% endif %}
+
+        <div class="me-actions">
+          {% if portfolio and portfolio.projects %}
+          <a href="#zone-projects" class="me-cta me-cta--primary">see my work ↓</a>
+          {% endif %}
+          <a href="{{ url_for('resume') }}" target="_blank" rel="noopener noreferrer" class="me-cta">résumé ↗</a>
+          <a href="#zone-contact" class="me-cta">get in touch</a>
+        </div>
+
+        <!-- Live request trace — real numbers for the request that served this page -->
+        <p class="me-trace" aria-label="How this page was served">
+          <span class="me-trace-dot" aria-hidden="true"></span>
+          <span class="me-trace-seg">GET /</span>
+          <span class="me-trace-seg me-trace-ok">200</span>
+          <span class="me-trace-seg" id="trace-ttfb" hidden></span>
+          {% if build_id %}<span class="me-trace-seg">build {{ build_id }}</span>{% endif %}
+        </p>
+
         <div class="me-body">
-          <div class="me-statement">
-            {{ portfolio.summary if portfolio else 'Software engineer building backend systems.' }}
-          </div>
+          {% if portfolio and portfolio.summary %}
+          <p class="me-statement">{{ portfolio.summary }}</p>
+          {% endif %}
 
           {% if portfolio and portfolio.education and portfolio.education|length > 0 %}
           <div class="me-context">
-            <span class="ctx-label">current context</span>
+            <span class="ctx-label">currently</span>
             <span class="ctx-val">{{ portfolio.education[0].institution }}</span>
             <span class="ctx-val">{{ portfolio.education[0].degree }}</span>
             <span class="ctx-date">{{ portfolio.education[0].year }}</span>
@@ -82,22 +98,20 @@
     </section>
 
     <!-- ============================================================
-         PROJECTS — single stable zone containing all projects
-         All project interaction is self-contained within this zone.
-         No project hover/open state changes anything outside this section.
-         Data-driven from resume_data.json — nothing hardcoded here.
+         PROJECTS — accordion; each header is a real <button>
          ============================================================ -->
     {% if portfolio and portfolio.projects %}
     <section class="zone zone--projects"
              id="zone-projects"
              data-zone="projects"
              data-zone-pos="center"
-             data-zone-label="projects">
+             data-zone-label="projects"
+             aria-labelledby="projects-heading">
       <div class="zone-inner">
 
         <div class="section-header">
           <p class="section-title">projects</p>
-          <h2 class="section-subtitle">things I have built</h2>
+          <h2 class="section-subtitle" id="projects-heading">things I have built</h2>
         </div>
 
         <div class="proj-list" id="proj-list">
@@ -107,28 +121,26 @@
           {% set has_github   = project.github %}
           {% set has_demo     = project.demo or project.live_url %}
 
-          <article class="proj-row"
-                   id="proj-row-{{ loop.index0 }}"
-                   data-proj-index="{{ loop.index0 }}"
-                   tabindex="0"
-                   role="button"
-                   aria-expanded="false"
-                   aria-label="Open {{ project.title }}">
+          <article class="proj-row" id="proj-row-{{ loop.index0 }}">
 
             <!-- Stable header — always visible -->
-            <header class="proj-header">
-              <span class="proj-num">{{ '%02d'|format(loop.index) }}</span>
-              <div class="proj-head-body">
-                <h3 class="proj-name">{{ project.title }}</h3>
-                {% if project.subtitle %}
-                <p class="proj-tagline">{{ project.subtitle }}</p>
-                {% endif %}
-              </div>
-              <span class="proj-cue" aria-hidden="true">→</span>
-            </header>
+            <h3 class="proj-heading">
+              <button type="button" class="proj-header"
+                      id="proj-toggle-{{ loop.index0 }}"
+                      aria-expanded="false"
+                      aria-controls="proj-panel-{{ loop.index0 }}">
+                <span class="proj-num" aria-hidden="true">{{ '%02d'|format(loop.index) }}</span>
+                <span class="proj-head-body">
+                  <span class="proj-name">{{ project.title }}</span>
+                  {% if project.subtitle %}<span class="proj-tagline">{{ project.subtitle }}</span>{% endif %}
+                </span>
+                <span class="proj-cue" aria-hidden="true">→</span>
+              </button>
+            </h3>
 
-            <!-- Detail panel — revealed in place, never changes doc height outside -->
-            <div class="proj-panel" aria-hidden="true">
+            <!-- Detail panel — inert while collapsed so its links aren't tabbable -->
+            <div class="proj-panel" id="proj-panel-{{ loop.index0 }}"
+                 role="region" aria-labelledby="proj-toggle-{{ loop.index0 }}" inert>
               <div class="proj-panel-inner">
                 <div class="proj-panel-body">
 
@@ -144,24 +156,38 @@
                   {% endif %}
 
                   {% if has_evidence %}
-                  <div class="proj-evidence">
+                  <dl class="proj-evidence">
                     {% if project.problem %}
-                    <div class="pev-row"><span class="pev-key">problem</span><span class="pev-val">{{ project.problem }}</span></div>
+                    <div class="pev-row"><dt class="pev-key">problem</dt><dd class="pev-val">{{ project.problem }}</dd></div>
                     {% endif %}
                     {% if project.architecture %}
-                    <div class="pev-row"><span class="pev-key">architecture</span><span class="pev-val">{{ project.architecture }}</span></div>
+                    {% set parts = project.architecture|components %}
+                    <div class="pev-row">
+                      <dt class="pev-key">architecture</dt>
+                      <dd class="pev-val">
+                        <!-- System map: components joined by a bus line; a pulse travels along it -->
+                        <ul class="sysmap" style="--n: {{ parts|length }}">
+                          {% for name, note in parts %}
+                          <li class="sysmap-node" style="--i: {{ loop.index0 }}">
+                            <span class="sysmap-name">{{ name }}</span>
+                            {% if note %}<span class="sysmap-note">{{ note }}</span>{% endif %}
+                          </li>
+                          {% endfor %}
+                        </ul>
+                      </dd>
+                    </div>
                     {% endif %}
                     {% if project.key_decisions %}
-                    <div class="pev-row"><span class="pev-key">decision</span><span class="pev-val">{{ project.key_decisions }}</span></div>
+                    <div class="pev-row"><dt class="pev-key">decision</dt><dd class="pev-val">{{ project.key_decisions }}</dd></div>
                     {% endif %}
                     {% if project.results %}
-                    <div class="pev-row"><span class="pev-key">result</span><span class="pev-val">{{ project.results }}</span></div>
+                    <div class="pev-row"><dt class="pev-key">result</dt><dd class="pev-val">{{ project.results }}</dd></div>
                     {% endif %}
-                  </div>
+                  </dl>
                   {% endif %}
 
                   {% if has_stack %}
-                  <div class="proj-stack">
+                  <div class="proj-stack" aria-label="Tech stack">
                     {% for tech in project.tech_stack %}
                     <span class="proj-stack-atom">{{ tech }}</span>{% if not loop.last %}<span class="proj-stack-sep" aria-hidden="true">/</span>{% endif %}
                     {% endfor %}
@@ -192,55 +218,94 @@
     {% endif %}
     <!-- /projects -->
 
-    <div class="zone-transition" aria-hidden="true"></div>
+    <!-- ============================================================
+         SKILLS — grouped by the keys in resume_data.json "skills"
+         ============================================================ -->
+    {% if portfolio and portfolio.skills %}
+    {% set skill_labels = {'gen_ai': 'gen ai & llms'} %}
+    <section class="zone zone--skills"
+             id="zone-skills"
+             data-zone="skills"
+             data-zone-pos="center"
+             data-zone-label="skills"
+             aria-labelledby="skills-heading">
+      <div class="zone-inner">
+        <div class="section-header">
+          <p class="section-title">skills</p>
+          <h2 class="section-subtitle" id="skills-heading">what I work with</h2>
+        </div>
+
+        <dl class="skills-grid">
+          {% for group, items in portfolio.skills.items() if items %}
+          <div class="skill-group">
+            <dt class="skill-label">{{ skill_labels.get(group, group|replace('_', ' ')) }}</dt>
+            <dd class="skill-items">
+              {% for item in items %}<span class="skill-atom">{{ item }}</span>{% if not loop.last %}<span class="proj-stack-sep" aria-hidden="true">/</span>{% endif %}{% endfor %}
+            </dd>
+          </div>
+          {% endfor %}
+        </dl>
+      </div>
+    </section>
+    {% endif %}
+    <!-- /skills -->
 
     <!-- ============================================================
          EXPERIMENTS — live side work (data-driven from live_projects)
-         Lighter treatment than major projects.
-         Displayed as discovered artifacts, not project cards.
+         Each card has a real <button>; the expanded card exposes its link.
          ============================================================ -->
     {% if portfolio and portfolio.live_projects %}
     <section class="zone zone--experiments"
              id="zone-experiments"
              data-zone="experiments"
-             data-zone-pos="center">
+             data-zone-pos="center"
+             data-zone-label="experiments"
+             aria-labelledby="experiments-heading">
 
       <div class="zone-inner">
-        <div class="section-header" style="align-items: center; text-align: center;">
+        <div class="section-header section-header--center">
           <p class="section-title">experiments</p>
-          <h2 class="section-subtitle">things I am exploring</h2>
+          <h2 class="section-subtitle" id="experiments-heading">things I am exploring</h2>
         </div>
 
-        <div class="elastic-gallery" id="elastic-gallery">
+        <div class="elastic-gallery" id="elastic-gallery" data-status-endpoint="{{ url_for('live_status') }}">
           {% for item in portfolio.live_projects %}
-          <div class="elastic-item {% if loop.index0 == 2 %}active{% endif %}" data-id="{{ loop.index0 }}" tabindex="0" role="button">
-            <!-- Background CSS Art Layer -->
-            <div class="elastic-bg">
-              <div class="css-art art-{{ loop.index0 }}"></div>
+          <div class="elastic-item {% if loop.first %}active{% endif %}">
+            <!-- Background CSS Art Layer (4 variants, cycled) -->
+            <div class="elastic-bg" aria-hidden="true">
+              <div class="css-art art-{{ loop.index0 % 4 }}"></div>
               <div class="elastic-overlay"></div>
             </div>
 
-            <!-- Content Container -->
-            <div class="elastic-content">
-              <!-- Active Content -->
-              <div class="elastic-active-content">
-                <div class="elastic-category">
-                  <span>{{ item.category or 'Experiment' }}</span>
-                </div>
-                <h3 class="elastic-title">{{ item.title }}</h3>
+            <!-- Collapsed state: the whole card is this button -->
+            <button type="button" class="elastic-toggle"
+                    aria-expanded="{{ 'true' if loop.first else 'false' }}"
+                    aria-controls="exp-panel-{{ loop.index0 }}">
+              <span class="elastic-inactive-content">
+                <span class="elastic-desktop-text">{{ item.title }}</span>
+                <span class="elastic-mobile-text">{{ '%02d'|format(loop.index) }} &mdash; {{ item.title }}</span>
+              </span>
+            </button>
+
+            <!-- Expanded state -->
+            <div class="elastic-active-content" id="exp-panel-{{ loop.index0 }}" {% if not loop.first %}inert{% endif %}>
+              <div class="elastic-category">
+                <span>{{ item.category or 'Experiment' }}</span>
                 {% if item.live_url %}
-                <a href="{{ item.live_url }}" target="_blank" rel="noopener noreferrer" class="elastic-cta">
-                  View Project
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
-                </a>
+                <!-- Filled from /status.json — a real server-side ping, cached for 5 minutes -->
+                <span class="exp-status" data-status-url="{{ item.live_url }}" hidden></span>
                 {% endif %}
               </div>
-
-              <!-- Inactive Content -->
-              <div class="elastic-inactive-content">
-                <span class="elastic-desktop-text">{{ item.title }}</span>
-                <span class="elastic-mobile-text">{{ '0' ~ loop.index }} &mdash; {{ item.title }}</span>
-              </div>
+              <h3 class="elastic-title">{{ item.title }}</h3>
+              {% if item.description %}
+              <p class="elastic-desc">{{ item.description }}</p>
+              {% endif %}
+              {% if item.live_url %}
+              <a href="{{ item.live_url }}" target="_blank" rel="noopener noreferrer" class="elastic-cta">
+                View Project<span class="visually-hidden">: {{ item.title }}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+              </a>
+              {% endif %}
             </div>
           </div>
           {% endfor %}
@@ -251,12 +316,8 @@
     {% endif %}
     <!-- /experiments -->
 
-    <div class="zone-transition" aria-hidden="true"></div>
-
     <!-- ============================================================
-         TRACES — evidence of the journey (data-driven)
-         Education, leadership, recognitions, certifications.
-         Rendered as quiet fragments in the field — not a project.
+         BACKGROUND — education, leadership, recognitions, certifications
          ============================================================ -->
     {% set has_traces = (portfolio and (
         portfolio.education or
@@ -268,15 +329,52 @@
     <section class="zone zone--traces"
              id="zone-traces"
              data-zone="traces"
-             data-zone-pos="left">
+             data-zone-pos="left"
+             data-zone-label="background"
+             aria-labelledby="traces-heading">
 
       <div class="zone-inner">
         <div class="section-header">
-          <p class="section-title">traces</p>
-          <h2 class="section-subtitle">fragments of the journey</h2>
+          <p class="section-title">background</p>
+          <h2 class="section-subtitle" id="traces-heading">fragments of the journey</h2>
         </div>
 
         <div class="traces-field">
+
+          {% if portfolio.responsibilities and portfolio.responsibilities|length > 0 %}
+          <div class="trace-chapter">
+            <h3 class="chapter-label">experience</h3>
+            <div class="chapter-items">
+              {% for role in portfolio.responsibilities %}
+              <div class="trace-fragment">
+                <p class="trace-name">{{ role.role }}</p>
+                <p class="trace-where">{{ role.organization }}</p>
+                {% if role.period %}<p class="trace-detail">{{ role.period }}</p>{% endif %}
+                {% if role.bullets %}
+                <ul class="trace-bullets">
+                  {% for b in role.bullets %}<li>{{ b }}</li>{% endfor %}
+                </ul>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          {% if portfolio.achievements and portfolio.achievements|length > 0 %}
+          <div class="trace-chapter">
+            <h3 class="chapter-label">achievements</h3>
+            <div class="chapter-items">
+              {% for ach in portfolio.achievements %}
+              <div class="trace-fragment">
+                <p class="trace-name">{{ ach.title }}{% if ach.subtitle %} — {{ ach.subtitle }}{% endif %}</p>
+                {% if ach.description %}<p class="trace-where">{{ ach.description }}</p>{% endif %}
+                {% if ach.year %}<p class="trace-detail">{{ ach.year }}</p>{% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
 
           {% if portfolio.education and portfolio.education|length > 0 %}
           <div class="trace-chapter">
@@ -288,36 +386,6 @@
                 <p class="trace-where">{{ edu.institution }}</p>
                 {% if edu.score %}<p class="trace-detail">{{ edu.score }}</p>{% endif %}
                 {% if edu.year %}<p class="trace-detail">{{ edu.year }}</p>{% endif %}
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-          {% endif %}
-
-          {% if portfolio.responsibilities and portfolio.responsibilities|length > 0 %}
-          <div class="trace-chapter">
-            <h3 class="chapter-label">responsibilities</h3>
-            <div class="chapter-items">
-              {% for role in portfolio.responsibilities %}
-              <div class="trace-fragment">
-                <p class="trace-name">{{ role.role }}</p>
-                <p class="trace-where">{{ role.organization }}</p>
-                {% if role.period %}<p class="trace-detail">{{ role.period }}</p>{% endif %}
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-          {% endif %}
-
-          {% if portfolio.achievements and portfolio.achievements|length > 0 %}
-          <div class="trace-chapter">
-            <h3 class="chapter-label">recognition</h3>
-            <div class="chapter-items">
-              {% for ach in portfolio.achievements %}
-              <div class="trace-fragment">
-                <p class="trace-name">{{ ach.title }}{% if ach.subtitle %} — {{ ach.subtitle }}{% endif %}</p>
-                {% if ach.description %}<p class="trace-where">{{ ach.description }}</p>{% endif %}
-                {% if ach.year %}<p class="trace-detail">{{ ach.year }}</p>{% endif %}
               </div>
               {% endfor %}
             </div>
@@ -342,23 +410,22 @@
       </div>
     </section>
     {% endif %}
-    <!-- /traces -->
-
-    <div class="zone-transition" aria-hidden="true"></div>
+    <!-- /background -->
 
     <!-- ============================================================
-         CONTACT — the edge of the world
-         No footer. No CTA. World ends quietly after this.
+         CONTACT
          ============================================================ -->
     <section class="zone zone--contact"
              id="zone-contact"
              data-zone="contact"
-             data-zone-pos="center">
+             data-zone-pos="center"
+             data-zone-label="contact"
+             aria-labelledby="contact-heading">
 
       <div class="zone-inner">
-        <div class="section-header" style="align-items: center; text-align: center;">
+        <div class="section-header section-header--center">
           <p class="section-title">contact</p>
-          <h2 class="section-subtitle">where the path ends</h2>
+          <h2 class="section-subtitle" id="contact-heading">where the path ends</h2>
         </div>
 
         <p class="contact-opening">
@@ -385,33 +452,47 @@
         {% endif %}
 
         <!-- Contact form -->
-        <form class="transmission" id="contact-form" novalidate aria-label="Send a message">
-          <div id="form-status" class="tx-status" role="alert" aria-live="polite"></div>
+        <form class="transmission" id="contact-form" action="{{ url_for('contact') }}" method="POST" novalidate aria-label="Send a message">
+          <div id="form-status" class="tx-status" role="status" aria-live="polite"></div>
 
           <div class="tx-row">
             <label for="cf-name" class="tx-label">name</label>
-            <input type="text" id="cf-name" name="name" class="tx-field" autocomplete="name" required>
+            <input type="text" id="cf-name" name="name" class="tx-field" autocomplete="name" maxlength="100" required>
           </div>
           <div class="tx-row">
             <label for="cf-email" class="tx-label">email</label>
-            <input type="email" id="cf-email" name="email" class="tx-field" autocomplete="email" required>
+            <input type="email" id="cf-email" name="email" class="tx-field" autocomplete="email" maxlength="254" required>
           </div>
           <div class="tx-row">
-            <label for="cf-subject" class="tx-label">subject</label>
-            <input type="text" id="cf-subject" name="subject" class="tx-field">
+            <label for="cf-subject" class="tx-label">subject <span class="tx-optional">(optional)</span></label>
+            <input type="text" id="cf-subject" name="subject" class="tx-field" maxlength="150">
           </div>
           <div class="tx-row">
             <label for="cf-message" class="tx-label">message</label>
-            <textarea id="cf-message" name="message" class="tx-area" required></textarea>
+            <textarea id="cf-message" name="message" class="tx-area" maxlength="5000" required></textarea>
+          </div>
+          <!-- Honeypot for bots — hidden from people and assistive tech -->
+          <div class="tx-hp" aria-hidden="true">
+            <label for="cf-website">website</label>
+            <input type="text" id="cf-website" name="website" tabindex="-1" autocomplete="off">
           </div>
           <button type="submit" class="tx-send" id="submit-btn">send</button>
         </form>
 
-        <!-- Absolute end of the world -->
-        <div class="world-end">
-          <span>© {{ current_year if current_year else '2026' }} {{ portfolio.name if portfolio else 'Raj Aryan' }}</span>
-          <button class="return-mark" id="return-btn" aria-label="Return to threshold">↑</button>
-        </div>
+        <footer class="world-end">
+          <div class="colophon">
+            <p class="colophon-title">colophon</p>
+            <p class="colophon-body">
+              Set in EB Garamond and JetBrains Mono. Written in Python, served by Flask{% if build_id %}
+              from build <span class="colophon-mono">{{ build_id }}</span>{% endif %}.
+              This page took <span class="colophon-mono">{{ '%.1f'|format(elapsed_ms()) }} ms</span> to render on the server.
+            </p>
+          </div>
+          <div class="world-end-row">
+            <span>© {{ current_year if current_year else '2026' }} {{ site_name }}</span>
+            <button type="button" class="return-mark" id="return-btn" aria-label="Back to top">↑</button>
+          </div>
+        </footer>
 
       </div>
     </section>

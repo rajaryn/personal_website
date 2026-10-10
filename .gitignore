@@ -10,3 +10,6 @@ wheels/
 .venv
 
 .env
+
+# Runtime data (contact messages, admin edits, uploaded résumé)
+instance/
