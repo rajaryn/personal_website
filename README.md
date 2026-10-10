@@ -40,5 +40,7 @@ uv run python -m unittest discover -s tests -v
 
 Pushing to `main` runs the tests, then deploys to the Oracle VM over SSH
 (`.github/workflows/deploy.yml`): `git pull`, `uv sync --locked`, restart the
-`personal_website` systemd service. The service should run the ASGI app, e.g.
-`uv run uvicorn app:asgi_app --host 127.0.0.1 --port 8000`.
+`personal_website` systemd service, which runs Gunicorn from the project venv:
+`.venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 app:app` (nginx proxies to it).
+All server dependencies, including Gunicorn, must be declared in `pyproject.toml`:
+`uv sync --locked` removes anything else.
